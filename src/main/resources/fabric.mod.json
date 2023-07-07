@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "the_starry_guard",
+  "version": "${version}",
+  "name": "TheStarryGuard",
+  "description": "Record player mine action",
+  "authors": [
+    "crackun24"
+  ],
+  "contact": {
+    "website": "null",
+    "repo": "null"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.thestarryguard.thestarryguard.client.TheStarryGuardClient"
+    ],
+    "main": [
+      "com.thestarryguard.thestarryguard.TheStarryGuard"
+    ]
+  },
+  "mixins": [
+    "TheStarryGuard.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "fabric": "*",
+    "minecraft": "1.20.1"
+  },
+  "permissions": [
+    "configread",
+    "configwrite"
+  ]
+}
