@@ -4,18 +4,14 @@ package com.thestarryguard.thestarryguard;
 import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
 import com.thestarryguard.thestarryguard.DataBaseStorage.Mysql;
 import com.thestarryguard.thestarryguard.DataType.Action;
-import org.apache.commons.lang3.builder.ToStringExclude;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import javax.xml.crypto.Data;
-import java.sql.Connection;
 import java.util.*;
 
 enum DataBaseStorageType {MYSQL, SQL_LITE};//数据的储存使用的数据库类型
 
 public class DataStorage extends Thread {//数据储存类,同时启动线程,不定时向数据库同步数据
-
+    private Boolean isClose;//判断服务器是否关闭
     Logger LOGGER = LogManager.getLogger();//获取日志记录器
     private DataBase mDataBase;//数据库对象
     private DataBaseStorageType mDbStorageType;//使用存储数据库的类型
