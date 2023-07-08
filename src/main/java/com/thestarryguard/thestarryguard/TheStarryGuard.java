@@ -76,8 +76,8 @@ public class TheStarryGuard implements ModInitializer {
     private void HookEntityAttackEvent() {
         AttackEntityCallback.EVENT.register(((player1, world1, hand1, entity, hitResult) -> {
             String world_id = world1.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
-            String entity_id = entity.getEntityName(); //获取实体的id
-            Vec3d location = entity.getPos();
+            String entity_id = Registries.ENTITY_TYPE.getId(entity.getType()).toShortTranslationKey(); //获取实体的id
+            Vec3d location = entity.getPos();//获取被攻击的实体的位置
 
             Action action = new Action(Action.ActionType.ATTACK_ENTITY, Action.TargetType.BLOCK, player1.getUuidAsString(),
                     entity_id, (int) location.getX(), (int) location.getY(), (int) location.getZ(), world_id, null);//构造行为对象
@@ -113,6 +113,7 @@ public class TheStarryGuard implements ModInitializer {
         LOGGER.info("Loading TheStarryGuard data storage.");
         this.mDataStorage = DataStorage.GetDataStorage(this.mConfig);//开始构建数据储存对象
         this.mDataStorage.start();//启动数据同步线程
+
     }
 
     @Override

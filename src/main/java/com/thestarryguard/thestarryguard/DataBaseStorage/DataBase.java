@@ -2,9 +2,15 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 
 import com.thestarryguard.thestarryguard.DataType.Action;
 
-public abstract class DataBase {//数据库的通用接口定义
+import java.util.HashMap;
 
-    protected abstract void VerifyDbConnection();//校验数据库是否连接成功
+public abstract class DataBase {//数据库的通用接口定义
+    protected HashMap<Integer, String> idPlayerMap;//玩家UUID和ID的映射
+    protected HashMap<Integer, String> idActionMap;//玩家行为和ID的映射
+    protected HashMap<Integer, String> idEntityMap;//实体的名字和ID的映射
+    protected HashMap<Integer, String> idDimensionMap;//维度的名字和ID的映射
+    protected HashMap<Integer, String> idBlockMap;//方块的ID和ID的映射
+
 
     protected abstract String GetPlayerUUIDByMap(int map_id);//通过玩家UUID对照获取玩的UUID
 
@@ -22,10 +28,9 @@ public abstract class DataBase {//数据库的通用接口定义
     protected abstract int GetOrCreateBlockMap(String block_id);//创建或者获取方块的对照
 
     protected abstract void WriteBlockBreakEvent(Action action);//写入玩家破坏方块的事件
-
+    protected abstract void CheckAndFixDataBaseStructure();//检查数据库的表的结构,如果表不符合要求,则修复表
     protected abstract void WriteBlockPlaceEvent(Action action);//写入玩家放置方块的事件
 
-    public abstract void CheckDbConnection();//检查数据库的连接
-
     public abstract void WriteActionToDb(Action action);//将玩家的行为写入数据库
+    public abstract void ConnectToDataBase();//连接到数据库
 }
