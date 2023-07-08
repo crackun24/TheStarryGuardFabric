@@ -11,7 +11,7 @@ import java.util.*;
 
 enum DataBaseStorageType {MYSQL, SQL_LITE};//数据的储存使用的数据库类型
 
-public class DataStorage extends Thread{//数据储存类,同时启动线程,不定时向数据库同步数据
+public class DataStorage extends Thread {//数据储存类,同时启动线程,不定时向数据库同步数据
 
     Logger LOGGER = LogManager.getLogger();//获取日志记录器
     private DataBaseStorageType mDbStorageType;//使用存储数据库的类型
@@ -20,19 +20,22 @@ public class DataStorage extends Thread{//数据储存类,同时启动线程,不
 
     private synchronized void PutActionToDb()//将玩家的行为存入数据库
     {
-       this.mActionList.poll();//弹出数据
+
+        if (!mActionList.isEmpty()) {//判断队列是否为空
+            Action action = this.mActionList.poll();//弹出数据
+            LOGGER.info(String.format("player: %s,dimension: %s,block: %s,action: %s",
+                    action.playerUUID, action.dimension, action.targetName, action.actionType.name()));
+        }
     }
 
     private DataStorage() {//构造函数
         this.mActionList = new LinkedList<>();//实例化队列对象
     }
 
-    public synchronized void PrintList(){//FIXME 测试方法
-        LOGGER.info("test");
+    public synchronized void PrintList() {//FIXME 测试方法
 
         Iterator<Action> iterator = this.mActionList.iterator();
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             Action temp = iterator.next();
             LOGGER.info(temp.posX);
         }
@@ -42,17 +45,17 @@ public class DataStorage extends Thread{//数据储存类,同时启动线程,不
         this.mActionList.add(action);
     }
 
-    public void run(){//数据库同步数据的线程
-        while (true)
-        {
+    public void run() {//数据库同步数据的线程
+        while (true) {
             try {
                 sleep(1000);
-                PrintList();//FIXME 调试
+                //PrintList();//FIXME 调试
                 PutActionToDb();//弹出玩家的行为
             } catch (InterruptedException e) {
             }
         }
     }
+
     static public DataStorage GetDataStorage(final Config config) {//构造一个数据储存对象的工厂方法
         DataStorage temp_obj = new DataStorage();//示例化一个对象
 
