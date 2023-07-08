@@ -12,7 +12,11 @@ import java.util.List;
 
 public class Mysql extends DataBase {
     private final List<String> DATABASE_TABLES_LIST= new ArrayList(){{
-        add("test");
+        add("tg_action");
+        add("tg_entity_map");
+        add("tg_action");
+        add("tg_item_map");
+        add("tg_player_map");
     }};
     private String mURL;//mysql连接的地址
     private Connection mConn;//数据库连接对象
@@ -88,9 +92,24 @@ public class Mysql extends DataBase {
             Statement stmt = this.mConn.createStatement();//创建查询
             ResultSet res = stmt.executeQuery(query_str);
 
-            while (res.next())//FIXME
+            List<String> db_tables_list = new ArrayList<>();//放置数据库中的所有表的临时数组
+            while (res.next())
             {
-                LOGGER.info(res.getString(1));
+                db_tables_list.add(res.getString(1));//将数据库返回的结果插入数组中
+            }
+
+            List<String> db_missing_tables_list = new ArrayList<>();//放置数据库中缺失的表的数组
+            for (String temp : DATABASE_TABLES_LIST)//遍历表
+            {
+               if(!db_tables_list.contains(temp))//判断是否含有该元素
+               {
+                   db_missing_tables_list.add(temp);//如果数据库中返回的表不包含该元素,则直接将该元素放入缺失的表的数组中
+               }
+            }
+
+            for(String ele : db_missing_tables_list)
+            {
+                LOGGER.info(ele);//FIXME
             }
 
         } catch (Exception e) {
