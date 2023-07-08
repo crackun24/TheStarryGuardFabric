@@ -7,6 +7,7 @@ public class Tables {
                 "  `action` int(10) NOT NULL,\n" +
                 "  `target` int(10) NOT NULL,\n" +
                 "  `time` int(10) NOT NULL,\n" +
+                "  `data` varchar(255) DEFAULT NULL,\n" +
                 "  `x` int(10) NOT NULL,\n" +
                 "  `y` int(10) NOT NULL,\n" +
                 "  `z` int(10) NOT NULL\n" +

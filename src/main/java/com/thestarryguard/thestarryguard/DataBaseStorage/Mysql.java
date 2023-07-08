@@ -59,6 +59,11 @@ public class Mysql extends DataBase {
     }
 
     @Override
+    protected void FlushEntityMap() {
+
+    }
+
+    @Override
     protected synchronized String GetPlayerUUIDByMap(int map_id) {
         return null;
     }
@@ -75,6 +80,11 @@ public class Mysql extends DataBase {
 
     @Override
     protected synchronized String GetItemByMap(int map_id) {
+        return null;
+    }
+
+    @Override
+    protected String GetEntityByMap(int entity_id) {
         return null;
     }
 
@@ -99,24 +109,31 @@ public class Mysql extends DataBase {
     }
 
     @Override
-    protected synchronized int GetOrCreateItemMap(String block) {
+    protected synchronized int GetOrCreateItemMap(String item) {
+        return 0;
+    }
+
+    @Override
+    protected int GetOrCreateEntityMap(String entity) {
         return 0;
     }
 
 
     @Override
-    protected synchronized void WriteBlockBreakEvent(Action action) {
-
-    }
-
-    @Override
-    protected synchronized void WriteBlockPlaceEvent(Action action) {
-
-    }
-
-    @Override
     public synchronized void WriteActionToDb(Action action) {//将玩家的行为写入数据库
+        int action_id = GetOrCreateActionMap(action.actionType);//获取玩家的行为的ID
+        int target_id;//目标的id(玩家放置的方块ID,玩家攻击的实体id)等
 
+        switch (action.actionType)
+        {
+            case BLOCK_BREAK, BLOCK_USE://方块破坏事件
+                target_id = GetOrCreateItemMap(action.targetName);//获取方块的id
+                break;
+            //获取方块id
+            case ATTACK_ENTITY://实体攻击事件
+                target_id = GetOrCreateEntityMap(action.targetName);//获取实体ID
+                break;
+        }
     }
 
     @Override
@@ -166,7 +183,7 @@ public class Mysql extends DataBase {
                         throw new Exception("Internal error: could not get the command of the missing table.");
                 }
 
-                if (create_table_str != null)//判断创建表的雨具不为空,则证明有表缺失
+                if (create_table_str != null)//判断创建表的语句不为空,则证明有表缺失
                 {
                     stmt.execute(create_table_str);//执行创建表的命令
                 }
