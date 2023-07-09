@@ -18,12 +18,11 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
 
     private Queue<Action> mActionList;
 
-    private synchronized void PutActionToDb()//将玩家的行为存入数据库
+    private synchronized void PutActionToDb() throws Exception//将玩家的行为存入数据库
     {
-        if (!mActionList.isEmpty()) {//判断队列是否为空
+        while (!mActionList.isEmpty()) {//判断队列是否为空
             Action action = this.mActionList.poll();//弹出数据
-            LOGGER.info(String.format("player: %s,dimension: %s,block: %s,action: %s",
-                    action.playerUUID, action.dimension, action.targetName, action.actionType.name()));
+            this.mDataBase.WriteActionToDb(action); //写入数据到数据库中
         }
     }
 
@@ -47,7 +46,6 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
     public void run() {//数据库同步数据的线程
         try{
             this.mDataBase.ConnectToDataBase();//连接到数据库
-
         }catch (Exception e)
         {
             LOGGER.error("Could not connect to dataBase.");

@@ -1,6 +1,7 @@
 package com.thestarryguard.thestarryguard;
 
 import com.thestarryguard.thestarryguard.DataType.Action;
+import com.thestarryguard.thestarryguard.DataType.Player;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -42,7 +43,8 @@ public class TheStarryGuard implements ModInitializer {
             String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
             String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
 
-            Action action = new Action(Action.ActionType.BLOCK_BREAK, Action.TargetType.BLOCK, player.getUuidAsString(),
+            Action action = new Action(Action.BLOCK_BREAK_ACTION_NAME, new Player(player.getName().getString(),
+                    player.getUuidAsString()),
                     block_id, pos.getX(), pos.getY(), pos.getZ(), world_id, null);
 
             this.mDataStorage.InsertAction(action);//插入玩家破坏方块的行为对象
@@ -63,8 +65,9 @@ public class TheStarryGuard implements ModInitializer {
                         .toString();//获取玩家使用的方块的ID
                 String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
 
-                Action action = new Action(Action.ActionType.BLOCK_USE, Action.TargetType.BLOCK, player.getUuidAsString(),
-                        block_id, location.getX(), location.getY(), location.getZ(), world_id, null);//构造行为对象
+                Action action = new Action(Action.BLOCK_USE_ACTION_NAME, new Player(player.getName().getString(),
+                        player.getUuidAsString()),
+                        block_id, location.getX(), location.getY(), location.getZ(), world_id, null);
 
                 this.mDataStorage.InsertAction(action);//插入玩家使用方块的行为对象
             }
@@ -79,7 +82,7 @@ public class TheStarryGuard implements ModInitializer {
             String entity_id = Registries.ENTITY_TYPE.getId(entity.getType()).toShortTranslationKey(); //获取实体的id
             Vec3d location = entity.getPos();//获取被攻击的实体的位置
 
-            Action action = new Action(Action.ActionType.ATTACK_ENTITY, Action.TargetType.BLOCK, player1.getUuidAsString(),
+            Action action = new Action(Action.ATTACK_ACTION_NAME,new Player(player1.getName().getString(),player1.getUuidAsString()),
                     entity_id, (int) location.getX(), (int) location.getY(), (int) location.getZ(), world_id, null);//构造行为对象
 
             this.mDataStorage.InsertAction(action);
