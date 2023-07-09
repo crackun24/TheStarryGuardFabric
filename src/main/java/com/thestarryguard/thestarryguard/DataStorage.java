@@ -71,6 +71,12 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
                 e.printStackTrace();
             }
         }
+        try {
+            PutActionToDb();//关闭的时候同步一次
+        } catch (Exception e) {
+            LOGGER.error(String.format("An error occurred when closing record thread: %s",e.toString()));
+           e.printStackTrace();
+        }
     }
 
     static public DataStorage GetDataStorage(final Config config) {//构造一个数据储存对象的工厂方法

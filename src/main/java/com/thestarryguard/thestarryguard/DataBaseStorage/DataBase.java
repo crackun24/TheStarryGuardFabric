@@ -42,6 +42,7 @@ public abstract class DataBase {//数据库的通用接口定义
     protected abstract int GetOrCreateEntityMap(String entity) throws Exception;//创建或者获取实体的id
 
 
+
     protected abstract void CheckAndFixDataBaseStructure() throws Exception;//检查数据库的表的结构,如果表不符合要求,则修复表
 
     public abstract void WriteActionToDb(Action action) throws Exception;//将玩家的行为写入数据库

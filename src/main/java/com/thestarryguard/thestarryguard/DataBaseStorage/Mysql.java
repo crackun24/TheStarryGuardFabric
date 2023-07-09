@@ -1,5 +1,6 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
+import com.mysql.cj.xdevapi.Table;
 import com.thestarryguard.thestarryguard.Config;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
@@ -7,8 +8,6 @@ import com.thestarryguard.thestarryguard.DataType.Tables;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.plaf.nimbus.State;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,8 +66,8 @@ public class Mysql extends DataBase {
 
         while (res.next())//遍历结果集
         {
-            id_player.put( res.getInt("id"), new Player(res.getString("name"),res.getString("uuid")));//将对象插入临时的表中
-            player_id.put(new Player(res.getString("name"),res.getString("uuid")), res.getInt("id"));//将对象插入临时的表中
+            id_player.put(res.getInt("id"), new Player(res.getString("name"), res.getString("uuid")));//将对象插入临时的表中
+            player_id.put(new Player(res.getString("name"), res.getString("uuid")), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idPlayerMap.clear();//清空原有的表
@@ -175,40 +174,86 @@ public class Mysql extends DataBase {
 
     @Override
     protected int GetOrCreateActionMap(String action) throws SQLException {
-        if(!this.actionIdMap.containsKey(action))//表中没有这个数据
+        if (!this.actionIdMap.containsKey(action))//表中没有这个数据
         {
-            int id = this.actionIdMap.size() +1;//计算出新的对照的id
+            int id = this.actionIdMap.size() + 1;//计算出新的对照的id
             this.insert_action_map.setString(1, action);  // 设置 action 参数值
             this.insert_action_map.setInt(2, id);             // 设置 id 参数值
             this.insert_action_map.execute();//执行更新
 
             FlushActionMap();//更新玩家行为更新的表
             return id;
-        }
-        else {
+        } else {
             return this.actionIdMap.get(action);
         }
     }
 
 
     @Override
-    protected synchronized int GetOrCreateDimensionMap(String dimension) {
-        return 0;
+    protected synchronized int GetOrCreateDimensionMap(String dimension) throws SQLException {
+        if (!this.dimensionIdMap.containsKey(dimension))//表中没有这个数据
+        {
+            int id = this.dimensionIdMap.size() + 1;//计算出新的对照的id
+            this.insert_dimension_map.setString(1, dimension);  // 设置 action 参数值
+            this.insert_dimension_map.setInt(2, id);             // 设置 id 参数值
+            this.insert_dimension_map.execute();//执行更新
+
+            FlushDimensionMap();//更新维度映射
+            return id;
+        } else {
+            return this.dimensionIdMap.get(dimension);
+        }
     }
 
     @Override
-    protected synchronized int GetOrCreatePlayerMap(Player player) {
-        return 0;
+    protected synchronized int GetOrCreatePlayerMap(Player player) throws SQLException {
+
+        if (!this.playerIdMap.containsKey(player))//表中没有这个数据
+        {
+            int id = this.playerIdMap.size() + 1;//计算出新的对照的id
+
+            this.insert_player_map.setString(1, player.UUID);  // 设置 uuid 参数值
+            this.insert_player_map.setString(2, player.name);  // 设置 name 参数值
+            this.insert_player_map.setInt(3, id);
+            this.insert_player_map.execute();//执行更新指令
+
+            FlushPlayerMap();//更新玩家映射
+            return id;
+        } else {
+            return this.playerIdMap.get(player);
+        }
     }
 
     @Override
-    protected synchronized int GetOrCreateItemMap(String item) {
-        return 0;
+    protected synchronized int GetOrCreateItemMap(String item) throws SQLException {
+        if (!this.itemIdMap.containsKey(item))//表中没有这个数据
+        {
+            int id = this.itemIdMap.size() + 1;//计算出新的对照的id
+            this.insert_item_map.setString(1, item);  // 设置 action 参数值
+            this.insert_item_map.setInt(2, id);             // 设置 id 参数值
+            this.insert_item_map.execute();//执行更新
+
+            FlushItemMap();//更新物品映射表
+            return id;
+        } else {
+            return this.itemIdMap.get(item);
+        }
     }
 
     @Override
-    protected int GetOrCreateEntityMap(String entity) {
-        return 0;
+    protected int GetOrCreateEntityMap(String entity) throws SQLException {
+        if (!this.entityIdMap.containsKey(entity))//表中没有这个数据
+        {
+            int id = this.entityIdMap.size() + 1;//计算出新的对照的id
+            this.insert_entity_map.setString(1, entity);  // 设置 action 参数值
+            this.insert_entity_map.setInt(2, id);             // 设置 id 参数值
+            this.insert_entity_map.execute();//执行更新
+
+            FlushEntityMap();//更新实体映射
+            return id;
+        } else {
+            return this.entityIdMap.get(entity);
+        }
     }
 
 
@@ -217,6 +262,7 @@ public class Mysql extends DataBase {
         int action_id = GetOrCreateActionMap(action.actionType);//获取玩家的行为的ID
         int target_id;//目标的id(玩家放置的方块ID,玩家攻击的实体id等)
         int player_id = GetOrCreatePlayerMap(action.player);//
+        int dimension_id = GetOrCreateDimensionMap(action.dimension);
 
         switch (action.actionType) {//判断玩家的行为的类型
             case Action.BLOCK_BREAK_ACTION_NAME, Action.BLOCK_USE_ACTION_NAME://方块破坏事件或者方块使用事件则直接获取方块的id
@@ -233,10 +279,11 @@ public class Mysql extends DataBase {
         this.insert_action.setInt(1, player_id);          // 设置 player 参数值
         this.insert_action.setInt(2, action_id);          // 设置 action 参数值
         this.insert_action.setInt(3, target_id);          // 设置 target 参数值
-        this.insert_action.setLong(4, action.time); // 设置 time 参数值
+        this.insert_action.setLong(4, action.time);         // 设置 time 参数值
         this.insert_action.setInt(6, action.posX);         // 设置 x 参数值
         this.insert_action.setInt(7, action.posY);         // 设置 y 参数值
         this.insert_action.setInt(8, action.posZ);         // 设置 z 参数值
+        this.insert_action.setInt(9, dimension_id);         //设置dimension参数值
 
         if (action.actionData != null)//判断玩家的操作是否包含了额外数据
         {
@@ -320,7 +367,13 @@ public class Mysql extends DataBase {
 
         this.insert_action = this.mConn.prepareStatement(Tables.Mysql.INSERT_ACTION_STR);//设置预处理语句
         this.insert_action_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ACTION_MAP_STR);
+        this.insert_dimension_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_DIMENSION_MAP_STR);
+        this.insert_entity_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ENTITY_MAP_STR);
+        this.insert_item_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ITEM_MAP_STR);
+        this.insert_player_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_PLAYER_MAP_STR);
 
         LOGGER.info("Mysql connected.");
     }
 }
+
+
