@@ -40,6 +40,10 @@ public class Tables {
                 ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
         public static final String INSERT_ACTION_STR =
                 "INSERT INTO tg_action (player, action, target, time, data, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";//插入玩家行为的预处理语句
+
+
+        public static final String INSERT_ACTION_MAP_STR = "INSERT INTO tg_action_map (action, id) VALUES (?, ?)";
+
     }
 
     public class SqlLite {

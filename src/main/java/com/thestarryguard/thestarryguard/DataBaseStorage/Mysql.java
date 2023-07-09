@@ -25,10 +25,10 @@ public class Mysql extends DataBase {
     PreparedStatement insert_action;//数据库插入行为的预准备语句
     PreparedStatement insert_dimension_map;//插入维度映射的预准备语句
     PreparedStatement insert_entity_map;//插入实体名字映射的预准备语句
-
     PreparedStatement insert_player_map;//插入玩家映射的预准备语句
-    PreparedStatement inert_action_map;//插入行为映射的预准备语句
+    PreparedStatement insert_action_map;//插入行为映射的预准备语句
     PreparedStatement insert_item_map;//插入物品映射的预准备语句
+
 
     private final List<String> DATABASE_TABLES_LIST = new ArrayList() {{
         add(DIMENSION_MAP_TABLE_NAME);
@@ -57,70 +57,97 @@ public class Mysql extends DataBase {
 
     @Override
     protected synchronized void FlushPlayerMap() throws SQLException {
+
         String query_str = String.format("SELECT * FROM %s;", PLAYER_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
 
-        HashMap<Player, Integer> temp = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Player, Integer> player_id = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Integer, Player> id_player = new HashMap<>();
+
         while (res.next())//遍历结果集
         {
-            temp.put(new Player(res.getString("name"), res.getString("uuid"))
-                    , res.getInt("id"));//将对象插入临时的表中
+            id_player.put( res.getInt("id"), new Player(res.getString("name"),res.getString("uuid")));//将对象插入临时的表中
+            player_id.put(new Player(res.getString("name"),res.getString("uuid")), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idPlayerMap.clear();//清空原有的表
-        this.idPlayerMap = temp;//将引用赋值给对照表
+        this.idPlayerMap = id_player;//将引用赋值给对照表
+
+        this.playerIdMap.clear();
+        this.playerIdMap = player_id;
+
     }
 
     @Override
     protected synchronized void FlushActionMap() throws SQLException {
+
         String query_str = String.format("SELECT * FROM %s;", ACTION_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
 
-        HashMap<String, Integer> temp = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<String, Integer> action_id = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Integer, String> id_action = new HashMap<>();
 
         while (res.next())//遍历结果集
         {
-            temp.put(res.getString("action"), res.getInt("id"));//将对象插入临时的表中
+            id_action.put(res.getInt("id"), res.getString("action"));//将对象插入临时的表中
+            action_id.put(res.getString("action"), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idActionMap.clear();//清空原有的表
-        this.idActionMap = temp;//将引用赋值给对照表
+        this.idActionMap = id_action;//将引用赋值给对照表
+
+        this.actionIdMap.clear();
+        this.actionIdMap = action_id;
+
     }
 
     @Override
     protected synchronized void FlushItemMap() throws SQLException {
+
         String query_str = String.format("SELECT * FROM %s;", ITEM_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
 
-        HashMap<String, Integer> temp = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<String, Integer> item_id = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Integer, String> id_item = new HashMap<>();
 
         while (res.next())//遍历结果集
         {
-            temp.put(res.getString("item"), res.getInt("id"));//将对象插入临时的表中
+            id_item.put(res.getInt("id"), res.getString("item"));//将对象插入临时的表中
+            item_id.put(res.getString("item"), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idItemMap.clear();//清空原有的表
-        this.idItemMap = temp;//将引用赋值给对照表
+        this.idItemMap = id_item;//将引用赋值给对照表
+
+        this.itemIdMap.clear();
+        this.itemIdMap = item_id;
+
     }
 
     @Override
     protected synchronized void FlushDimensionMap() throws SQLException {
+
         String query_str = String.format("SELECT * FROM %s;", DIMENSION_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
 
-        HashMap<String, Integer> temp = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<String, Integer> dimension_id = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Integer, String> id_dimension = new HashMap<>();
 
         while (res.next())//遍历结果集
         {
-            temp.put(res.getString("dimension"), res.getInt("id"));//将对象插入临时的表中
+            id_dimension.put(res.getInt("id"), res.getString("dimension"));//将对象插入临时的表中
+            dimension_id.put(res.getString("dimension"), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idDimensionMap.clear();//清空原有的表
-        this.idDimensionMap = temp;//将引用赋值给对照表
+        this.idDimensionMap = id_dimension;//将引用赋值给对照表
+
+        this.dimensionIdMap.clear();
+        this.dimensionIdMap = dimension_id;
 
     }
 
@@ -130,21 +157,37 @@ public class Mysql extends DataBase {
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
 
-        HashMap<String, Integer> temp = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<String, Integer> entity_id = new HashMap<>();//创建一个临时的表,如果发生了意外可以保证原有的表不损坏
+        HashMap<Integer, String> id_entity = new HashMap<>();
 
         while (res.next())//遍历结果集
         {
-            temp.put(res.getString("entity"), res.getInt("id"));//将对象插入临时的表中
+            id_entity.put(res.getInt("id"), res.getString("entity"));//将对象插入临时的表中
+            entity_id.put(res.getString("entity"), res.getInt("id"));//将对象插入临时的表中
         }
 
         this.idEntityMap.clear();//清空原有的表
-        this.idEntityMap = temp;//将引用赋值给对照表
+        this.idEntityMap = id_entity;//将引用赋值给对照表
 
+        this.entityIdMap.clear();
+        this.entityIdMap = entity_id;
     }
 
     @Override
-    protected int GetOrCreateActionMap(String action) {
-        return 0;
+    protected int GetOrCreateActionMap(String action) throws SQLException {
+        if(!this.actionIdMap.containsKey(action))//表中没有这个数据
+        {
+            int id = this.actionIdMap.size() +1;//计算出新的对照的id
+            this.insert_action_map.setString(1, action);  // 设置 action 参数值
+            this.insert_action_map.setInt(2, id);             // 设置 id 参数值
+            this.insert_action_map.execute();//执行更新
+
+            FlushActionMap();//更新玩家行为更新的表
+            return id;
+        }
+        else {
+            return this.actionIdMap.get(action);
+        }
     }
 
 
@@ -198,8 +241,8 @@ public class Mysql extends DataBase {
         if (action.actionData != null)//判断玩家的操作是否包含了额外数据
         {
             this.insert_action.setString(5, action.actionData); // 设置 data 参数
-        }else{
-            this.insert_action.setNull(5,Types.VARCHAR);//如果行为的额外数据为空,则设置为空
+        } else {
+            this.insert_action.setNull(5, Types.VARCHAR);//如果行为的额外数据为空,则设置为空
         }
         this.insert_action.execute();//执行插入数据
     }
@@ -269,7 +312,15 @@ public class Mysql extends DataBase {
         if (!this.mConn.isValid(5)) {//判断连接是否有效
             throw new RuntimeException("time out");//如果连接无效,则直接抛出异常
         }
+        FlushActionMap();//刷新对照表
+        FlushPlayerMap();
+        FlushDimensionMap();
+        FlushItemMap();
+        FlushEntityMap();
+
         this.insert_action = this.mConn.prepareStatement(Tables.Mysql.INSERT_ACTION_STR);//设置预处理语句
+        this.insert_action_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ACTION_MAP_STR);
+
         LOGGER.info("Mysql connected.");
     }
 }

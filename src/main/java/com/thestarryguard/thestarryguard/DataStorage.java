@@ -18,6 +18,10 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
 
     private Queue<Action> mActionList;
 
+    private synchronized Boolean GetMainCloseState()//获取主线程是否关闭
+    {
+       return this.isClose;
+    }
     private synchronized void PutActionToDb() throws Exception//将玩家的行为存入数据库
     {
         while (!mActionList.isEmpty()) {//判断队列是否为空
@@ -26,9 +30,14 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
         }
     }
 
+    public synchronized void CloseThread()//关闭线程
+    {
+        this.isClose = true;
+    }
 
     private DataStorage() {//构造函数
         this.mActionList = new LinkedList<>();//实例化队列对象
+        this.isClose = false;//设置未关闭的状态
     }
 
     public synchronized void PrintList() {//FIXME 测试方法
@@ -52,7 +61,7 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
             e.printStackTrace();
         }
 
-        while (true) {
+        while (!GetMainCloseState()) {//主线程未发送关闭信号时无限循环
             try {
                 sleep(1000);
                 //PrintList();//FIXME 调试

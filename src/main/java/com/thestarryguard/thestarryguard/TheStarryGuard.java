@@ -3,6 +3,7 @@ package com.thestarryguard.thestarryguard;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -89,9 +90,15 @@ public class TheStarryGuard implements ModInitializer {
             return ActionResult.PASS;
         }));
     }//注册玩家攻击实体事件
-
+    private void HookServerClose()
+    {
+        ServerLifecycleEvents.SERVER_STOPPING.register((server -> {
+           this.mDataStorage.CloseThread();
+        }));//注册服务器关闭时向子线程发送关闭信号
+    }
 
     private void HookEvent() {
+        HookServerClose();
         if (Boolean.parseBoolean(this.mConfig.GetValue("hook_block_break_event")))//判断是否注册方块破坏事件
         {
             HookBlockBreakEvent();//如果启用则注册破坏方块的事件
