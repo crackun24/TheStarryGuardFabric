@@ -1,5 +1,7 @@
 package com.thestarryguard.thestarryguard;
 
+import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
+import com.thestarryguard.thestarryguard.DataBaseStorage.Mysql;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import net.fabricmc.api.ModInitializer;
@@ -16,6 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 
 
@@ -25,6 +28,7 @@ public class TheStarryGuard implements ModInitializer {
     Config mConfig;//配置文件对象
 
     DataStorage mDataStorage;//数据储存类
+    DataQuery mDataQuery;//数据查询对象
 
     private void HookBlockBreakEvent() {
         PlayerBlockBreakEvents.BEFORE.register(((world, player, pos, state, blockEntity) -> {
@@ -70,18 +74,46 @@ public class TheStarryGuard implements ModInitializer {
             String entity_id = Registries.ENTITY_TYPE.getId(entity.getType()).toShortTranslationKey(); //获取实体的id
             Vec3d location = entity.getPos();//获取被攻击的实体的位置
 
-            Action action = new Action(Action.ATTACK_ACTION_NAME,new Player(player1.getName().getString(),player1.getUuidAsString()),
+            Action action = new Action(Action.ATTACK_ACTION_NAME, new Player(player1.getName().getString(), player1.getUuidAsString()),
                     entity_id, (int) location.getX(), (int) location.getY(), (int) location.getZ(), world_id, null);//构造行为对象
 
             this.mDataStorage.InsertAction(action);
             return ActionResult.PASS;
         }));
     }//注册玩家攻击实体事件
-    private void HookServerClose()
-    {
+
+    private void HookServerClose() {
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> {
-           this.mDataStorage.CloseThread();
+            this.mDataStorage.CloseThread();
         }));//注册服务器关闭时向子线程发送关闭信号
+    }
+
+    private void CreateDataStorageAndQuery()//创建一个数据储存对象和查询对象
+    {
+        DataBase data_base;
+        switch (this.mConfig.GetValue("data_storage_type"))//确认数据存储的类型
+        {
+            case "mysql":
+                String db_name = this.mConfig.GetValue("mysql_name");
+                String db_host = this.mConfig.GetValue("mysql_host");
+                String db_port = this.mConfig.GetValue("mysql_port");
+                String db_user = this.mConfig.GetValue("mysql_user");
+                String db_pass = this.mConfig.GetValue("mysql_pass");
+
+                String url = String.format("jdbc:mysql://%s:%s/%s?autoReconnect=true&serverTimezone=UTC&useSSL=false&user=%s&password=%s", db_host, db_port, db_name, db_user, db_pass);
+                data_base = Mysql.GetMysql(url);//构建一个mysql数据库连接对象
+                break;
+            case "sql_lite":
+                data_base =null;//fixme
+                break;
+            default:
+                throw new RuntimeException("Unable to confirm the database type used.");//如果无法确认使用的数据库类型,直接抛出异常
+        }
+
+
+        this.mDataStorage = DataStorage.GetDataStorage(data_base);//构造数据储存对象
+        this.mDataQuery = DataQuery.GetDataQuery(data_base);//构造数据查询对象
+        this.mDataStorage.start();//启动数据同步线程
     }
 
     private void HookEvent() {
@@ -108,9 +140,8 @@ public class TheStarryGuard implements ModInitializer {
         this.mConfig = Config.LoadConfig(config_file_path);//加载配置文件
 
         LOGGER.info("Loading TheStarryGuard data storage.");
-        this.mDataStorage = DataStorage.GetDataStorage(this.mConfig);//开始构建数据储存对象
-        this.mDataStorage.start();//启动数据同步线程
-
+        CreateDataStorageAndQuery();//创建数据储存对象
+        LOGGER.info("Loaded TheStarry data storage.");
     }
 
     @Override

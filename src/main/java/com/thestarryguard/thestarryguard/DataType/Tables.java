@@ -11,7 +11,8 @@ public class Tables {
                 "  `x` int(10) NOT NULL,\n" +
                 "  `y` int(10) NOT NULL,\n" +
                 "  `z` int(10) NOT NULL,\n" +
-                "  `dimension` int(10) NOT NULL\n" +
+                "  `dimension` int(10) NOT NULL,\n" +
+                "  KEY `location` (`x`,`y`,`z`)\n" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
         public static final String CREATE_TG_ACTION_MAP = "CREATE TABLE `tg_action_map` (\n" +
                 "  `action` varchar(255) NOT NULL,\n" +
@@ -39,7 +40,7 @@ public class Tables {
                 "  `id` int(10) NOT NULL,\n" +
                 "  PRIMARY KEY (`dimension`)\n" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String INSERT_ACTION_STR ="INSERT INTO tg_action (player, action, target, time, data, x, y, z, dimension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";//玩家行为预处理语句
+        public static final String INSERT_ACTION_STR = "INSERT INTO tg_action (player, action, target, time, data, x, y, z, dimension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";//玩家行为预处理语句
 
 
         public static final String INSERT_ACTION_MAP_STR = "INSERT INTO tg_action_map (action, id) VALUES (?, ?)";

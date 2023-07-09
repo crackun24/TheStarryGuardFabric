@@ -2,10 +2,13 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
+import oshi.hardware.HardwareAbstractionLayer;
 
 import java.util.HashMap;
 
+
 public abstract class DataBase {//数据库的通用接口定义
+    public enum DataBaseStorageType {MYSQL, SQL_LITE};//数据的储存使用的数据库类型
     protected HashMap<Player, Integer> playerIdMap = new HashMap<>();//玩家对象和ID的映射
     protected HashMap<String, Integer> actionIdMap = new HashMap<>();//玩家行为和ID的映射
     protected HashMap<String, Integer> entityIdMap = new HashMap<>();//实体的名字和ID的映射
@@ -41,6 +44,15 @@ public abstract class DataBase {//数据库的通用接口定义
 
     protected abstract int GetOrCreateEntityMap(String entity) throws Exception;//创建或者获取实体的id
 
+    protected abstract Player GetPlayerById(int player_id) throws Exception;//通过玩家的映射id获取玩家对象
+
+    protected abstract String GetEntityById(int entity_id) throws Exception;//通过实体的映射id获取实体名称
+
+    protected abstract String GetItemById(int item_id) throws Exception;//通过物品的映射id获取物品的名称
+
+    protected abstract String GetDimensionById(int dimension_id) throws Exception;//通过维度的映射id获取维度的名称
+
+    protected abstract String GetActionById(int action_id) throws Exception;//通过行为映射id获取行为名称
 
 
     protected abstract void CheckAndFixDataBaseStructure() throws Exception;//检查数据库的表的结构,如果表不符合要求,则修复表

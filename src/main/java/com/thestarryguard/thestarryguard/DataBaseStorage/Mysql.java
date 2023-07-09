@@ -256,6 +256,31 @@ public class Mysql extends DataBase {
         }
     }
 
+    @Override
+    protected synchronized Player GetPlayerById(int player_id) throws Exception {
+        return this.idPlayerMap.get(player_id);
+    }
+
+    @Override
+    protected synchronized String GetEntityById(int entity_id) throws Exception {
+        return this.idEntityMap.get(entity_id);
+    }
+
+    @Override
+    protected synchronized String GetItemById(int item_id) throws Exception {
+        return this.idItemMap.get(item_id);
+    }
+
+    @Override
+    protected synchronized String GetDimensionById(int dimension_id) throws Exception {
+        return this.idDimensionMap.get(dimension_id);
+    }
+
+    @Override
+    protected synchronized String GetActionById(int action_id) throws Exception {
+        return null;
+    }
+
 
     @Override
     public synchronized void WriteActionToDb(Action action) throws Exception {//将玩家的行为写入数据库
