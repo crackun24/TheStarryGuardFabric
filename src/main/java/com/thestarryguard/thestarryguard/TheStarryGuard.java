@@ -4,6 +4,7 @@ import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
 import com.thestarryguard.thestarryguard.DataBaseStorage.Mysql;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
+import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -12,6 +13,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -20,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 
 public class TheStarryGuard implements ModInitializer {
@@ -30,16 +33,32 @@ public class TheStarryGuard implements ModInitializer {
     DataStorage mDataStorage;//数据储存类
     DataQuery mDataQuery;//数据查询对象
 
+    CommandMgr mCommandMgr;//命令管理对象
+    HashMap<String, Short> mPlayerStartPointQuery;//启用了方块查询的玩家
+    MinecraftServer mServer;//服务器实例
+
     private void HookBlockBreakEvent() {
         PlayerBlockBreakEvents.BEFORE.register(((world, player, pos, state, blockEntity) -> {
-            String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
-            String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
+            String player_uuid = player.getUuidAsString();
+            if (this.mDataQuery.IsPlayerHookPointQuery(player_uuid)) {
 
-            Action action = new Action(Action.BLOCK_BREAK_ACTION_NAME, new Player(player.getName().getString(),
-                    player.getUuidAsString()),
-                    block_id, pos.getX(), pos.getY(), pos.getZ(), world_id, null);
+                String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
+                QueryTask task = new QueryTask(pos.getX(), pos.getY(), pos.getZ(),
+                        dimension_name, QueryTask.QueryType.POINT, player_uuid, 1);
+                //创建一个新的查询任务,默认显示第一页的内容,因为是点击,所以为点查询
+                this.mDataQuery.AddQueryTask(task);//添加查询任务
 
-            this.mDataStorage.InsertAction(action);//插入玩家破坏方块的行为对象
+                return false;
+            } else {//玩家没有启用方块查询
+                String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
+                String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
+
+                Action action = new Action(Action.BLOCK_BREAK_ACTION_NAME, new Player(player.getName().getString(),
+                        player.getUuidAsString()),
+                        block_id, pos.getX(), pos.getY(), pos.getZ(), world_id, null);
+
+                this.mDataStorage.InsertAction(action);//插入玩家破坏方块的行为对象
+            }
 
             return true;
         }));//方块破坏事件
@@ -55,11 +74,11 @@ public class TheStarryGuard implements ModInitializer {
                 String block_id = Registries.ITEM.getId(
                                 player.getMainHandStack().getItem() == Items.AIR ? player.getOffHandStack().getItem() : player.getMainHandStack().getItem())
                         .toString();//获取玩家使用的方块的ID
-                String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
+                String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
 
                 Action action = new Action(Action.BLOCK_USE_ACTION_NAME, new Player(player.getName().getString(),
                         player.getUuidAsString()),
-                        block_id, location.getX(), location.getY(), location.getZ(), world_id, null);
+                        block_id, location.getX(), location.getY(), location.getZ(), dimension_name, null);
 
                 this.mDataStorage.InsertAction(action);//插入玩家使用方块的行为对象
             }
@@ -67,6 +86,22 @@ public class TheStarryGuard implements ModInitializer {
             return ActionResult.PASS;
         }));
     }//注册方块放置事件
+
+    private void HookServerStart() {
+        ServerLifecycleEvents.SERVER_STARTED.register((server -> {
+            LOGGER.info("Loading TheStarryGuard");
+            this.mServer = server;//获取服务器的实例
+            try {
+                InitPlugin();//初始化模组
+                HookEvent();//注册配置文件中启用的事件
+                RegCommand();//注册命令
+            } catch (IOException e) {
+                LOGGER.error("Could not init TheStarryGuard.");
+                e.printStackTrace();
+                throw new RuntimeException(e);//抛出异常,阻止服务器的启动
+            }
+        }));
+    }
 
     private void HookEntityAttackEvent() {
         AttackEntityCallback.EVENT.register(((player1, world1, hand1, entity, hitResult) -> {
@@ -85,6 +120,7 @@ public class TheStarryGuard implements ModInitializer {
     private void HookServerClose() {
         ServerLifecycleEvents.SERVER_STOPPING.register((server -> {
             this.mDataStorage.CloseThread();
+            this.mDataQuery.CloseDataQuery();
         }));//注册服务器关闭时向子线程发送关闭信号
     }
 
@@ -104,7 +140,7 @@ public class TheStarryGuard implements ModInitializer {
                 data_base = Mysql.GetMysql(url);//构建一个mysql数据库连接对象
                 break;
             case "sql_lite":
-                data_base =null;//fixme
+                data_base = null;//fixme
                 break;
             default:
                 throw new RuntimeException("Unable to confirm the database type used.");//如果无法确认使用的数据库类型,直接抛出异常
@@ -114,9 +150,11 @@ public class TheStarryGuard implements ModInitializer {
         this.mDataStorage = DataStorage.GetDataStorage(data_base);//构造数据储存对象
         this.mDataQuery = DataQuery.GetDataQuery(data_base);//构造数据查询对象
         this.mDataStorage.start();//启动数据同步线程
+        this.mDataQuery.start();//启动数据查询线程
     }
 
     private void HookEvent() {
+        HookServerStart();
         HookServerClose();
         if (Boolean.parseBoolean(this.mConfig.GetValue("hook_block_break_event")))//判断是否注册方块破坏事件
         {
@@ -134,7 +172,12 @@ public class TheStarryGuard implements ModInitializer {
         }
     }//注册配置文件中的事件
 
+    private void RegCommand() {
+        this.mCommandMgr.RegAllCommand();//注册所有的指令
+    }
+
     private void InitPlugin() throws IOException {//初始化插件
+
         LOGGER.info("Loading TheStarryGuard config file.");
         String config_file_path = FabricLoader.getInstance().getConfigDir().toString();//获取配置文件存放的路径
         this.mConfig = Config.LoadConfig(config_file_path);//加载配置文件
@@ -142,19 +185,11 @@ public class TheStarryGuard implements ModInitializer {
         LOGGER.info("Loading TheStarryGuard data storage.");
         CreateDataStorageAndQuery();//创建数据储存对象
         LOGGER.info("Loaded TheStarry data storage.");
+
+        this.mCommandMgr = new CommandMgr(this.mDataQuery);//初始化命令管理对象
     }
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Loading TheStarryGuard");
-        try {
-            InitPlugin();//初始化模组
-            HookEvent();//注册配置文件中启用的事件
-        } catch (IOException e) {
-            LOGGER.error("Could not init TheStarryGuard.");
-            e.printStackTrace();
-            throw new RuntimeException(e);//抛出异常,阻止服务器的启动
-        }
-
     }
 }

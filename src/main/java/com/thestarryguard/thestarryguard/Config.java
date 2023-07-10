@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class Config {//配置文件类
-    static final String CONFIG_FILE_NAME = "TheStarryGuard\\TheStarryGuard.properties";//配置文件的名称
+    static final String CONFIG_FILE_NAME = "TheStarryGuard/TheStarryGuard.properties";//配置文件的名称
     static final String DEFAULT_CONFIG_DATA = "default_config";//默认的配置文件信息
     private Properties prop;//properties的配置文件读取对象
     private Logger LOGGER = LogManager.getLogger();//获取日志记录器
@@ -23,15 +23,18 @@ public class Config {//配置文件类
 
     static public Config LoadConfig(String file_path) throws IOException//加载配置文件
     {
-        Config temp_obj = new Config();//配置文件对象
-        File config_folder = new File(file_path + "\\TheStarryGuard");//文件夹的路径
+        System.out.println(file_path + "/TheStarryGuard");//FIXME
 
-        if(!config_folder.exists())//如果文件夹不存在
+        Config temp_obj = new Config();//配置文件对象
+        File config_folder = new File(file_path + "/TheStarryGuard");//文件夹的路径
+
+
+        if (!config_folder.exists())//如果文件夹不存在
         {
-           config_folder.mkdir();//创建文件夹
+            config_folder.mkdir();//创建文件夹
         }
 
-        File config_file = new File(file_path + "\\" + CONFIG_FILE_NAME);//打开文件
+        File config_file = new File(file_path + "/" + CONFIG_FILE_NAME);//打开文件
         if (!config_file.exists())//判断文件是否存在
         {
             CreateDefaultConfigFile(config_file);//如果文件不存在,则直接创建一个新的文件,并且写入默认的配置文件信息

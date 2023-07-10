@@ -1,9 +1,9 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
-import com.mysql.cj.xdevapi.Table;
 import com.thestarryguard.thestarryguard.Config;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
+import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.DataType.Tables;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +27,11 @@ public class Mysql extends DataBase {
     PreparedStatement insert_player_map;//插入玩家映射的预准备语句
     PreparedStatement insert_action_map;//插入行为映射的预准备语句
     PreparedStatement insert_item_map;//插入物品映射的预准备语句
+
+    PreparedStatement query_point_action;//查询单个点的行为
+    PreparedStatement query_point_action_count;//查询单个点的行为的总量
+    PreparedStatement query_area_action;//查询区域的行为
+    PreparedStatement getQuery_area_action_count;//查询区域的行为的数量
 
 
     private final List<String> DATABASE_TABLES_LIST = new ArrayList() {{
@@ -320,6 +325,25 @@ public class Mysql extends DataBase {
     }
 
     @Override
+    public int GetPointActionCount(QueryTask query_task) throws SQLException {
+        int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+        this.query_point_action_count.setInt(1, query_task.x);      // 替换为指定的x值
+        this.query_point_action_count.setInt(2, query_task.y);      // 替换为指定的y值
+        this.query_point_action_count.setInt(3, query_task.z);      // 替换为指定的z值
+        this.query_point_action_count.setInt(4, dimension_id);       // 替换为指定的dimension值
+        this.query_point_action_count.setInt(5, 0);        // 结果起始索引（第一行的索引为0），替换为你需要的范围
+        this.query_point_action_count.setInt(6, 10);       // 结果数量，替换为你需要的范围大小
+
+        ResultSet res = this.query_point_action_count.executeQuery();//执行查询
+        int count = 0;//结果
+        while (res.next()) {
+            count = res.getInt("total");//获取返回的结果
+        }
+        return count;//返回一共有几个结果
+    }
+
+
+    @Override
     public void CheckAndFixDataBaseStructure() throws Exception {//检查数据库的表的结构是否符合要求,如果不符合要求则进行数据库的表的修复
         String query_str = "show tables;";//查询数据库中所有的表的mysql指令
         Statement stmt = this.mConn.createStatement();//创建查询
@@ -396,6 +420,7 @@ public class Mysql extends DataBase {
         this.insert_entity_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ENTITY_MAP_STR);
         this.insert_item_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ITEM_MAP_STR);
         this.insert_player_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_PLAYER_MAP_STR);
+        this.query_point_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_POINT_ACTION_COUNT);
 
         LOGGER.info("Mysql connected.");
     }

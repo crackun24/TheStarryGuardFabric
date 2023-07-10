@@ -2,6 +2,7 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
+import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import oshi.hardware.HardwareAbstractionLayer;
 
 import java.util.HashMap;
@@ -44,6 +45,8 @@ public abstract class DataBase {//数据库的通用接口定义
 
     protected abstract int GetOrCreateEntityMap(String entity) throws Exception;//创建或者获取实体的id
 
+
+
     protected abstract Player GetPlayerById(int player_id) throws Exception;//通过玩家的映射id获取玩家对象
 
     protected abstract String GetEntityById(int entity_id) throws Exception;//通过实体的映射id获取实体名称
@@ -59,5 +62,6 @@ public abstract class DataBase {//数据库的通用接口定义
 
     public abstract void WriteActionToDb(Action action) throws Exception;//将玩家的行为写入数据库
 
+    public abstract int GetPointActionCount(QueryTask query_task) throws Exception;//获取玩家的行为
     public abstract void ConnectToDataBase() throws Exception;//连接到数据库
 }

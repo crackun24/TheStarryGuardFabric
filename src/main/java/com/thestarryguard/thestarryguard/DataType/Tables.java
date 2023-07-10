@@ -48,6 +48,8 @@ public class Tables {
         public static final String INSERT_ENTITY_MAP_STR = "INSERT INTO tg_entity_map (entity, id) VALUES (?, ?)";
         public static final String INSERT_ITEM_MAP_STR = "INSERT INTO tg_item_map (item, id) VALUES (?, ?)";
         public static final String INSERT_PLAYER_MAP_STR = "INSERT INTO tg_player_map (uuid, name, id) VALUES (?, ?, ?)";
+        public static final String QUERY_POINT_ACTION = "";
+        public static final String QUERY_POINT_ACTION_COUNT = "SELECT * FROM tg_action WHERE x = ? AND y = ? AND z = ? AND dimension = ? ORDER BY time DESC LIMIT ?, ?";
     }
 
 
