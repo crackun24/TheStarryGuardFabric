@@ -17,10 +17,9 @@ public class Player {//玩家类
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Player)) {
+        if (!(obj instanceof Player temp)) {
             return false;
         }
-        Player temp = (Player) obj;
         return this.UUID.equals(temp.UUID);
     }
 

@@ -45,18 +45,18 @@ public class TheStarryGuard implements ModInitializer {
 
                 String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
                 QueryTask task = new QueryTask(pos.getX(), pos.getY(), pos.getZ(),
-                        dimension_name, QueryTask.QueryType.POINT, player_name, 1);
+                        dimension_name, QueryTask.QueryType.POINT, player_name, 0);
                 //创建一个新的查询任务,默认显示第一页的内容,因为是点击,所以为点查询
                 this.mDataQuery.AddQueryTask(task);//添加查询任务
 
                 return false;
             } else {//玩家没有启用方块查询
                 String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
-                String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
+                String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
 
                 Action action = new Action(Action.BLOCK_BREAK_ACTION_NAME, new Player(player.getName().getString(),
                         player.getUuidAsString()),
-                        block_id, pos.getX(), pos.getY(), pos.getZ(), world_id, null);
+                        block_id, pos.getX(), pos.getY(), pos.getZ(), dimension_name, null);
 
                 this.mDataStorage.InsertAction(action);//插入玩家破坏方块的行为对象
             }
@@ -121,21 +121,17 @@ public class TheStarryGuard implements ModInitializer {
         DataBase data_base;
         switch (this.mConfig.GetValue("data_storage_type"))//确认数据存储的类型
         {
-            case "mysql":
+            case "mysql" -> {
                 String db_name = this.mConfig.GetValue("mysql_name");
                 String db_host = this.mConfig.GetValue("mysql_host");
                 String db_port = this.mConfig.GetValue("mysql_port");
                 String db_user = this.mConfig.GetValue("mysql_user");
                 String db_pass = this.mConfig.GetValue("mysql_pass");
-
                 String url = String.format("jdbc:mysql://%s:%s/%s?autoReconnect=true&serverTimezone=UTC&useSSL=false&user=%s&password=%s", db_host, db_port, db_name, db_user, db_pass);
                 data_base = Mysql.GetMysql(url);//构建一个mysql数据库连接对象
-                break;
-            case "sql_lite":
-                data_base = null;//fixme
-                break;
-            default:
-                throw new RuntimeException("Unable to confirm the database type used.");//如果无法确认使用的数据库类型,直接抛出异常
+            }
+            case "sql_lite" -> data_base = null;//fixme
+            default -> throw new RuntimeException("Unable to confirm the database type used.");//如果无法确认使用的数据库类型,直接抛出异常
         }
 
 

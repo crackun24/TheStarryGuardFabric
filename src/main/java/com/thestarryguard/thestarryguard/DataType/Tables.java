@@ -2,44 +2,50 @@ package com.thestarryguard.thestarryguard.DataType;
 
 public class Tables {
     public class Mysql {
-        public static final String CREATE_TG_ACTION = "CREATE TABLE `tg_action` (\n" +
-                "  `player` int(10) NOT NULL,\n" +
-                "  `action` int(10) NOT NULL,\n" +
-                "  `target` int(10) NOT NULL,\n" +
-                "  `time` int(10) NOT NULL,\n" +
-                "  `data` varchar(255) DEFAULT NULL,\n" +
-                "  `x` int(10) NOT NULL,\n" +
-                "  `y` int(10) NOT NULL,\n" +
-                "  `z` int(10) NOT NULL,\n" +
-                "  `dimension` int(10) NOT NULL,\n" +
-                "  KEY `location` (`x`,`y`,`z`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String CREATE_TG_ACTION_MAP = "CREATE TABLE `tg_action_map` (\n" +
-                "  `action` varchar(255) NOT NULL,\n" +
-                "  `id` int(10) NOT NULL,\n" +
-                "  PRIMARY KEY (`action`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String CREATE_TG_ENTITY_MAP = "CREATE TABLE `tg_entity_map` (\n" +
-                "  `entity` varchar(255) NOT NULL,\n" +
-                "  `id` int(10) NOT NULL,\n" +
-                "  PRIMARY KEY (`entity`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String CREATE_TG_ITEM_MAP = "CREATE TABLE `tg_item_map` (\n" +
-                "  `item` varchar(255) NOT NULL,\n" +
-                "  `id` int(10) NOT NULL,\n" +
-                "  PRIMARY KEY (`item`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String CREATE_TG_PLAYER_MAP = "CREATE TABLE `tg_player_map` (\n" +
-                "  `uuid` varchar(255) NOT NULL,\n" +
-                "  `name` varchar(255) NOT NULL,\n" +
-                "  `id` int(10) NOT NULL,\n" +
-                "  PRIMARY KEY (`uuid`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        public static final String CREATE_TG_DIMENSION_MAP = "CREATE TABLE `tg_dimension_map` (\n" +
-                "  `dimension` varchar(255) NOT NULL,\n" +
-                "  `id` int(10) NOT NULL,\n" +
-                "  PRIMARY KEY (`dimension`)\n" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
+        public static final String CREATE_TG_ACTION = """
+                CREATE TABLE `tg_action` (
+                  `player` int(10) NOT NULL,
+                  `action` int(10) NOT NULL,
+                  `target` int(10) NOT NULL,
+                  `time` int(10) NOT NULL,
+                  `data` varchar(255) DEFAULT NULL,
+                  `x` int(10) NOT NULL,
+                  `y` int(10) NOT NULL,
+                  `z` int(10) NOT NULL,
+                  `dimension` int(10) NOT NULL,
+                  KEY `location` (`x`,`y`,`z`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
+        public static final String CREATE_TG_ACTION_MAP = """
+                CREATE TABLE `tg_action_map` (
+                  `action` varchar(255) NOT NULL,
+                  `id` int(10) NOT NULL,
+                  PRIMARY KEY (`action`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
+        public static final String CREATE_TG_ENTITY_MAP = """
+                CREATE TABLE `tg_entity_map` (
+                  `entity` varchar(255) NOT NULL,
+                  `id` int(10) NOT NULL,
+                  PRIMARY KEY (`entity`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
+        public static final String CREATE_TG_ITEM_MAP = """
+                CREATE TABLE `tg_item_map` (
+                  `item` varchar(255) NOT NULL,
+                  `id` int(10) NOT NULL,
+                  PRIMARY KEY (`item`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
+        public static final String CREATE_TG_PLAYER_MAP = """
+                CREATE TABLE `tg_player_map` (
+                  `uuid` varchar(255) NOT NULL,
+                  `name` varchar(255) NOT NULL,
+                  `id` int(10) NOT NULL,
+                  PRIMARY KEY (`uuid`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
+        public static final String CREATE_TG_DIMENSION_MAP = """
+                CREATE TABLE `tg_dimension_map` (
+                  `dimension` varchar(255) NOT NULL,
+                  `id` int(10) NOT NULL,
+                  PRIMARY KEY (`dimension`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=latin1;""";
         public static final String INSERT_ACTION_STR = "INSERT INTO tg_action (player, action, target, time, data, x, y, z, dimension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";//玩家行为预处理语句
 
 
@@ -50,6 +56,8 @@ public class Tables {
         public static final String INSERT_PLAYER_MAP_STR = "INSERT INTO tg_player_map (uuid, name, id) VALUES (?, ?, ?)";
         public static final String QUERY_POINT_ACTION = "SELECT * FROM tg_action WHERE x = ? AND y = ? AND z = ? AND dimension = ? ORDER BY time DESC LIMIT ?, ?";
         public static final String QUERY_POINT_ACTION_COUNT = "SELECT COUNT(*) AS count FROM tg_action WHERE x = ? AND y = ? AND z = ? AND dimension = ?";
+        public static final String QUERY_AREA_ACTION = "SELECT * FROM tg_action WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? AND dimension = ? ORDER BY time DESC LIMIT ?,?";
+        public static final String QUERY_AREA_ACTION_COUNT = "SELECT COUNT(*) AS count FROM tg_action WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? AND dimension = ? ORDER BY time DESC LIMIT ?,?";
     }
 
 

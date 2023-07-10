@@ -1,8 +1,8 @@
 package com.thestarryguard.thestarryguard;
 
 import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
+import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.*;
@@ -13,6 +13,7 @@ public class DataQuery extends Thread {//数据查询类
     private HashMap<String, QueryTask> mPlayerLastTask;//玩家上一次查询的任务对照,方便进行翻页的操作
     private Queue<QueryTask> mQueryTask;//查询任务的玩家
     private Boolean mCloseState;//主线程的关闭状态
+
     private DataQuery()//构造函数
     {
 
@@ -20,11 +21,40 @@ public class DataQuery extends Thread {//数据查询类
 
     private DataBase mDataBase;
 
-    private synchronized void DoPointTask(QueryTask task) throws Exception//完成点的人物
+    private synchronized void DoAreaTask(QueryTask task) throws Exception {//完成区域的人物
+       int amount = this.mDataBase.GetAreaActionCount(task);
+        int total_page = amount % task.Max_PAGE_AMOUNT == 0 ? amount / task.Max_PAGE_AMOUNT : amount / task.Max_PAGE_AMOUNT + 1;
+        StringBuilder data_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(amount), Integer.toString(amount == 0 ? 0 : 1), Integer.toString(total_page)));
+
+        this.mMain.SendMsgToPlayer(task.senderName, Text.literal(data_to_send.toString()));//默认发送第一页的内容
+    }
+
+    private synchronized void DoPointTask(QueryTask task) throws Exception//完成点的任务
     {
         int amount = this.mDataBase.GetPointActionCount(task);
-        System.out.println(amount);
-        this.mMain.SendMsgToPlayer(task.senderName,Text.literal(Integer.toString(amount)));
+        int total_page = amount % task.Max_PAGE_AMOUNT == 0 ? amount / task.Max_PAGE_AMOUNT : amount / task.Max_PAGE_AMOUNT + 1;
+        //总共的页数
+        if (task.pageId > total_page)//判断是否大于最大的页数
+        {
+            this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
+            return;
+        }
+        ArrayList<Action> action_list = this.mDataBase.GetPointAction(task);//获取指定的行为
+
+        StringBuilder data_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(amount), Integer.toString(amount == 0 ? 0 : 1), Integer.toString(total_page)));
+
+        long time = System.currentTimeMillis() / 1000;
+        for (Action action : action_list)//遍历返回的结果集
+        {
+            long delta_time = time - action.time;//获取时间差
+            String entry = String.format("%s %s %s, %s ago.\n", action.player.name, action.actionType, action.targetName,
+                    Tool.GetDateLengthDes(delta_time));
+            data_to_send.append(entry);
+        }
+
+        this.mPlayerLastTask.put(task.senderName, task);//放入玩家与上一个任务的映射中
+
+        this.mMain.SendMsgToPlayer(task.senderName, Text.literal(data_to_send.toString()));//默认发送第一页的内容
     }
 
     private synchronized void DoTask() throws Exception//完成任务列表中的人物
@@ -38,6 +68,7 @@ public class DataQuery extends Thread {//数据查询类
                     DoPointTask(task);
                     break;
                 case AREA:
+                    DoAreaTask(task);
                     break;
                 default://如果是未知的类型
                     throw new IllegalStateException("Unexpected value: " + task.queryType);
@@ -89,11 +120,25 @@ public class DataQuery extends Thread {//数据查询类
         this.mCloseState = true;//设置关闭状态成立
     }
 
-    static public DataQuery GetDataQuery(DataBase data_base,TheStarryGuard main) {//创建一个data_query对象
+    public synchronized void AddPageQuery(String player_name, int page)//有页数的查询
+    {
+        if (!this.mPlayerLastTask.containsKey(player_name)) //判断是否有这个玩家的上一次请求
+        {
+            this.mMain.SendMsgToPlayer(player_name, Text.literal("§cPage not found."));
+            return;
+        }
+        QueryTask task = this.mPlayerLastTask.get(player_name);//获取玩家的上一次的人物
+        task.pageId = page;//改写原来的页数
+
+        this.mQueryTask.add(task);//将改写后的任务添加进队列中
+    }
+
+    static public DataQuery GetDataQuery(DataBase data_base, TheStarryGuard main) {//创建一个data_query对象
         DataQuery temp = new DataQuery();
         temp.mDataBase = data_base;//设置使用的数据库
         temp.mPointQueryPlayer = new HashMap<>();//初始化哈希表
         temp.mQueryTask = new LinkedList<>();//初始化查询任务的队列
+        temp.mPlayerLastTask = new HashMap<>();//初始化玩家的上一个哈希表
         temp.mCloseState = false;
         temp.mMain = main;
         return temp;//返回构造好的对象

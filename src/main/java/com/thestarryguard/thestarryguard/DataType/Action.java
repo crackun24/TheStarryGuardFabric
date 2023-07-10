@@ -5,15 +5,15 @@ public class Action {//玩家的行为类
     public static final String BLOCK_USE_ACTION_NAME = "block_use";
     public static final String BLOCK_BREAK_ACTION_NAME = "block_break";
 
-    public final Player player;
-    public final int posX;
-    public final int posY;
-    public final int posZ;
-    public final String dimension;//玩家触发这个事件的维度
-    public final String targetName;
-    public final String actionData;//事件的数据
-    public final long time;//触发事件的时间
-    public final String actionType;
+    public Player player;
+    public int posX;
+    public int posY;
+    public int posZ;
+    public String dimension;//玩家触发这个事件的维度
+    public String targetName;
+    public String actionData;//事件的数据
+    public long time;//触发事件的时间
+    public String actionType;
 
     public Action(String action_type, Player player, String target_name, int x, int y, int z, String dimension, String action_data) {
         this.player = player;

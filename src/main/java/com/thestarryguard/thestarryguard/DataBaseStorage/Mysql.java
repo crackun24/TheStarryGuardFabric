@@ -1,10 +1,11 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
-import com.thestarryguard.thestarryguard.Config;
+import com.mysql.cj.xdevapi.Table;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.DataType.Tables;
+import net.minecraft.client.gui.tab.Tab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +13,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.thestarryguard.thestarryguard.DataType.Action.*;
 
 public class Mysql extends DataBase {
     private static final String DIMENSION_MAP_TABLE_NAME = "tg_dimension_map";
@@ -44,7 +47,6 @@ public class Mysql extends DataBase {
     }};
     private String mURL;//mysql连接的地址
     private Connection mConn;//数据库连接对象
-    private Config mConfig;//配置文件
     private Logger LOGGER;//日志记录器对象
 
     //构造函数
@@ -283,7 +285,7 @@ public class Mysql extends DataBase {
 
     @Override
     protected synchronized String GetActionById(int action_id) throws Exception {
-        return null;
+        return this.idActionMap.get(action_id);
     }
 
 
@@ -294,17 +296,15 @@ public class Mysql extends DataBase {
         int player_id = GetOrCreatePlayerMap(action.player);//
         int dimension_id = GetOrCreateDimensionMap(action.dimension);
 
-        switch (action.actionType) {//判断玩家的行为的类型
-            case Action.BLOCK_BREAK_ACTION_NAME, Action.BLOCK_USE_ACTION_NAME://方块破坏事件或者方块使用事件则直接获取方块的id
-                target_id = GetOrCreateItemMap(action.targetName);//获取方块的id
-                break;
+        target_id = switch (action.actionType) {//判断玩家的行为的类型
+            case Action.BLOCK_BREAK_ACTION_NAME, BLOCK_USE_ACTION_NAME ->//方块破坏事件或者方块使用事件则直接获取方块的id
+                    GetOrCreateItemMap(action.targetName);//获取方块的id
             //获取方块id
-            case Action.ATTACK_ACTION_NAME://实体攻击事件
-                target_id = GetOrCreateEntityMap(action.targetName);//获取实体ID
-                break;
-            default://如果无法找到行为的映射则直接抛出异常
-                throw new Exception("Could not get the map of the type of the action.");
-        }
+            case Action.ATTACK_ACTION_NAME ->//实体攻击事件
+                    GetOrCreateEntityMap(action.targetName);//获取实体ID
+            default ->//如果无法找到行为的映射则直接抛出异常
+                    throw new Exception("Could not get the map of the type of the action.");
+        };
 
         this.insert_action.setInt(1, player_id);          // 设置 player 参数值
         this.insert_action.setInt(2, action_id);          // 设置 action 参数值
@@ -337,6 +337,63 @@ public class Mysql extends DataBase {
         return res.getInt("count");//返回一共有几个结果
     }
 
+    @Override
+    public ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception {
+        int start_pos = query_task.Max_PAGE_AMOUNT * query_task.pageId;
+        int dimension_id = this.GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的名字
+
+        this.query_point_action.setInt(1, query_task.x);      // 替换为指定的x值
+        this.query_point_action.setInt(2, query_task.y);      // 替换为指定的y值
+        this.query_point_action.setInt(3, query_task.z);      // 替换为指定的z值
+        this.query_point_action.setInt(4, dimension_id);       // 替换为指定的dimension值
+        this.query_point_action.setInt(5, start_pos);        // 结果起始索引（第一行的索引为0），替换为你需要的范围
+        this.query_point_action.setInt(6, query_task.Max_PAGE_AMOUNT);       // 结果数量，替换为你需要的范围大小
+
+        ResultSet res = query_point_action.executeQuery();
+        ArrayList<Action> temp = new ArrayList<>();
+        while (res.next())//遍历结果集
+        {
+            Player player = GetPlayerById(res.getInt("player"));
+            String action = GetActionById(res.getInt("action"));
+            String dimension_name = GetDimensionById(res.getInt("dimension"));
+            String obj_name = GetObjByActionAndId(action, res.getInt("target"));
+
+            Action action_temp = new Action(action, player, obj_name,
+                    res.getInt("x"), res.getInt("y"), res.getInt("z"), dimension_name, res.getString("data"));
+            action_temp.time = res.getLong("time");
+            temp.add(action_temp);
+        }
+        return temp;//返回结果
+    }
+
+    @Override
+    public int GetAreaActionCount(QueryTask query_task) throws Exception {
+        int start_pos = query_task.Max_PAGE_AMOUNT * query_task.pageId;
+
+        this.getQuery_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(4, query_task.y + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(5, query_task.z - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(6, query_task.z + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.getQuery_area_action_count.setInt(8, start_pos);
+        this.getQuery_area_action_count.setInt(9, query_task.Max_PAGE_AMOUNT);
+
+        int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+        this.getQuery_area_action_count.setInt(7, dimension_id);
+
+        System.out.println(this.getQuery_area_action_count.toString());//FIXME
+
+        ResultSet res = this.getQuery_area_action_count.executeQuery();//执行查询
+        res.next();
+        return res.getInt("count");//返回结果
+    }
+
+    @Override
+    public ArrayList<Action> GetAreaAction(QueryTask query_task) {
+        return null;
+    }
+
 
     @Override
     public void CheckAndFixDataBaseStructure() throws Exception {//检查数据库的表的结构是否符合要求,如果不符合要求则进行数据库的表的修复
@@ -359,30 +416,16 @@ public class Mysql extends DataBase {
         }
 
         for (String ele : db_missing_tables_list) {
-            String create_table_str = "";
-
-            switch (ele) {//检查数据库的表是否缺失
-                case "tg_action"://判断是行为的表缺失
-                    create_table_str = Tables.Mysql.CREATE_TG_ACTION;
-                    break;
-                case "tg_action_map":
-                    create_table_str = Tables.Mysql.CREATE_TG_ACTION_MAP;
-                    break;
-                case "tg_dimension_map":
-                    create_table_str = Tables.Mysql.CREATE_TG_DIMENSION_MAP;
-                    break;
-                case "tg_entity_map":
-                    create_table_str = Tables.Mysql.CREATE_TG_ENTITY_MAP;
-                    break;
-                case "tg_item_map":
-                    create_table_str = Tables.Mysql.CREATE_TG_ITEM_MAP;
-                    break;
-                case "tg_player_map":
-                    create_table_str = Tables.Mysql.CREATE_TG_PLAYER_MAP;
-                    break;
-                default:
-                    throw new Exception("Internal error: could not get the command of the missing table.");
-            }
+            String create_table_str = switch (ele) {//检查数据库的表是否缺失
+                case "tg_action" ->//判断是行为的表缺失
+                        Tables.Mysql.CREATE_TG_ACTION;
+                case "tg_action_map" -> Tables.Mysql.CREATE_TG_ACTION_MAP;
+                case "tg_dimension_map" -> Tables.Mysql.CREATE_TG_DIMENSION_MAP;
+                case "tg_entity_map" -> Tables.Mysql.CREATE_TG_ENTITY_MAP;
+                case "tg_item_map" -> Tables.Mysql.CREATE_TG_ITEM_MAP;
+                case "tg_player_map" -> Tables.Mysql.CREATE_TG_PLAYER_MAP;
+                default -> throw new Exception("Internal error: could not get the command of the missing table.");
+            };
 
             if (create_table_str != null)//判断创建表的语句不为空,则证明有表缺失
             {
@@ -390,6 +433,19 @@ public class Mysql extends DataBase {
             }
         }
 
+    }
+
+    @Override
+    protected String GetObjByActionAndId(String action, int obj_id) throws Exception {
+        switch (action)//判断是哪一种类型
+        {
+            case BLOCK_USE_ACTION_NAME, BLOCK_BREAK_ACTION_NAME:
+                return GetItemById(obj_id);
+            case ATTACK_ACTION_NAME:
+                return GetEntityById(obj_id);
+            default:
+                throw new RuntimeException("Could not find the action.");
+        }
     }
 
     @Override
@@ -416,6 +472,10 @@ public class Mysql extends DataBase {
         this.insert_item_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_ITEM_MAP_STR);
         this.insert_player_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_PLAYER_MAP_STR);
         this.query_point_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_POINT_ACTION_COUNT);
+        this.query_point_action = this.mConn.prepareStatement(Tables.Mysql.QUERY_POINT_ACTION);
+        this.getQuery_area_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_AREA_ACTION_COUNT);
+        this.query_area_action = this.mConn.prepareStatement(Tables.Mysql.QUERY_AREA_ACTION);
+
 
         LOGGER.info("Mysql connected.");
     }

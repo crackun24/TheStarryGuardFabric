@@ -5,11 +5,15 @@ import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import oshi.hardware.HardwareAbstractionLayer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
 public abstract class DataBase {//数据库的通用接口定义
-    public enum DataBaseStorageType {MYSQL, SQL_LITE};//数据的储存使用的数据库类型
+
+    public enum DataBaseStorageType {MYSQL, SQL_LITE}
+
+    ;//数据的储存使用的数据库类型
     protected HashMap<Player, Integer> playerIdMap = new HashMap<>();//玩家对象和ID的映射
     protected HashMap<String, Integer> actionIdMap = new HashMap<>();//玩家行为和ID的映射
     protected HashMap<String, Integer> entityIdMap = new HashMap<>();//实体的名字和ID的映射
@@ -46,7 +50,6 @@ public abstract class DataBase {//数据库的通用接口定义
     protected abstract int GetOrCreateEntityMap(String entity) throws Exception;//创建或者获取实体的id
 
 
-
     protected abstract Player GetPlayerById(int player_id) throws Exception;//通过玩家的映射id获取玩家对象
 
     protected abstract String GetEntityById(int entity_id) throws Exception;//通过实体的映射id获取实体名称
@@ -60,8 +63,17 @@ public abstract class DataBase {//数据库的通用接口定义
 
     protected abstract void CheckAndFixDataBaseStructure() throws Exception;//检查数据库的表的结构,如果表不符合要求,则修复表
 
+    protected abstract String GetObjByActionAndId(String action, int obj_id) throws Exception;//通过行为获取对象的名称(破坏方块--物品,攻击--实体)
+
     public abstract void WriteActionToDb(Action action) throws Exception;//将玩家的行为写入数据库
 
-    public abstract int GetPointActionCount(QueryTask query_task) throws Exception;//获取玩家的行为
+    public abstract int GetPointActionCount(QueryTask query_task) throws Exception;//获取玩家的行为的数量
+
+    public abstract ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception;//获取玩家的行为
+
+    public abstract int GetAreaActionCount(QueryTask query_task) throws Exception;//获取区域内的行为的数量
+
+    public abstract ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception;//获取区域内的所有行为的数量
+
     public abstract void ConnectToDataBase() throws Exception;//连接到数据库
 }

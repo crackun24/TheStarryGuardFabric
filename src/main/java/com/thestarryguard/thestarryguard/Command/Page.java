@@ -1,58 +1,50 @@
 package com.thestarryguard.thestarryguard.Command;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.sun.jdi.connect.Connector;
 import com.thestarryguard.thestarryguard.DataQuery;
-import com.thestarryguard.thestarryguard.DataType.Player;
-import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.Text;
 
-import java.util.HashMap;
-
+import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-public class QueryPoint {//查询点的指令
+public class Page {
     private DataQuery mDataQuery;
 
     public void RegQueryPointCommand() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
                 literal("TSGuard")
-                        .then(literal("check")
+                        .then(literal("page")
+                        .then(argument("page", IntegerArgumentType.integer())
                                 .executes(context -> {
                                     // 在这里执行您的操作
                                     try {
                                         ServerPlayerEntity player = context.getSource().getPlayer();
-                                        if (player == null)//判断是否可以正常获取玩家对象
+                                        if(player == null)
                                         {
-                                            return -1;
+                                            return 1;//如果无法获取到玩家对象,则直接返回函数
                                         }
                                         String player_name = player.getName().getString();//获取玩家的名字
                                         if (player_name.isEmpty())//无法获取玩家的UUID则直接返回
-                                        {
                                             return 1;
-                                        }
-                                        if (!this.mDataQuery.IsPlayerHookPointQuery(player_name))//玩家没有启用查询
-                                        {
-                                            this.mDataQuery.HookPlayerPointQuery(player_name);//注册玩家
-                                            context.getSource().sendMessage(Text.literal("§2Enable point check."));
-                                        } else {//玩家启用了查询
-                                            this.mDataQuery.UnHookPlayerPointQuery(player_name); //取消玩家的注册
-                                            context.getSource().sendMessage(Text.literal("§cDisable point check."));
-                                        }
+                                        int page = IntegerArgumentType.getInteger(context,"page");//获取玩家输入的页数
+                                        page -=1;//mysql从0开始,要减一,符合玩家的阅读习惯
+                                        this.mDataQuery.AddPageQuery(player_name,page);//将玩家的请求添加
+
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         context.getSource().sendMessage(Text.literal("§cInternal error."));
                                     }
-
                                     return 1;
                                 })
                         )
-        ));
+        )));
     }
 
-    public QueryPoint(DataQuery data_query) {
+    public Page(DataQuery data_query) {
         this.mDataQuery = data_query;
     }
 }
-
