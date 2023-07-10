@@ -331,15 +331,10 @@ public class Mysql extends DataBase {
         this.query_point_action_count.setInt(2, query_task.y);      // 替换为指定的y值
         this.query_point_action_count.setInt(3, query_task.z);      // 替换为指定的z值
         this.query_point_action_count.setInt(4, dimension_id);       // 替换为指定的dimension值
-        this.query_point_action_count.setInt(5, 0);        // 结果起始索引（第一行的索引为0），替换为你需要的范围
-        this.query_point_action_count.setInt(6, 10);       // 结果数量，替换为你需要的范围大小
 
         ResultSet res = this.query_point_action_count.executeQuery();//执行查询
-        int count = 0;//结果
-        while (res.next()) {
-            count = res.getInt("total");//获取返回的结果
-        }
-        return count;//返回一共有几个结果
+        res.next();
+        return res.getInt("count");//返回一共有几个结果
     }
 
 

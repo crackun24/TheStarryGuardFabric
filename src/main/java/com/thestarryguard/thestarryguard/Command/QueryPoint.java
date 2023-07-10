@@ -23,15 +23,15 @@ public class QueryPoint {//查询点的指令
                                     // 在这里执行您的操作
                                     try {
                                         ServerPlayerEntity player = context.getSource().getPlayer();
-                                        String player_uuid = player.getUuidAsString();//获取玩家的uuid
-                                        if (player_uuid.isEmpty())//无法获取玩家的UUID则直接返回
+                                        String player_name = player.getName().getString();//获取玩家的名字
+                                        if (player_name.isEmpty())//无法获取玩家的UUID则直接返回
                                             return 1;
-                                        if (!this.mDataQuery.IsPlayerHookPointQuery(player_uuid))//玩家没有启用查询
+                                        if (!this.mDataQuery.IsPlayerHookPointQuery(player_name))//玩家没有启用查询
                                         {
-                                            this.mDataQuery.HookPlayerPointQuery(player_uuid);//注册玩家
+                                            this.mDataQuery.HookPlayerPointQuery(player_name);//注册玩家
                                             context.getSource().sendMessage(Text.literal("§2Enable point check."));
                                         } else {//玩家启用了查询
-                                            this.mDataQuery.UnHookPlayerPointQuery(player_uuid); //取消玩家的注册
+                                            this.mDataQuery.UnHookPlayerPointQuery(player_name); //取消玩家的注册
                                             context.getSource().sendMessage(Text.literal("§cDisable point check."));
                                         }
                                     } catch (Exception e) {
