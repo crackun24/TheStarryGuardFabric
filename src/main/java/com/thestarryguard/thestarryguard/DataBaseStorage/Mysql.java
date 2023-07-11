@@ -1,11 +1,9 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
-import com.mysql.cj.xdevapi.Table;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.DataType.Tables;
-import net.minecraft.client.gui.tab.Tab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +32,7 @@ public class Mysql extends DataBase {
     PreparedStatement query_point_action;//查询单个点的行为
     PreparedStatement query_point_action_count;//查询单个点的行为的总量
     PreparedStatement query_area_action;//查询区域的行为
-    PreparedStatement getQuery_area_action_count;//查询区域的行为的数量
+    PreparedStatement Query_area_action_count;//查询区域的行为的数量
 
 
     private final List<String> DATABASE_TABLES_LIST = new ArrayList() {{
@@ -47,7 +45,7 @@ public class Mysql extends DataBase {
     }};
     private String mURL;//mysql连接的地址
     private Connection mConn;//数据库连接对象
-    private Logger LOGGER;//日志记录器对象
+    private final Logger LOGGER;//日志记录器对象
 
     //构造函数
     private Mysql() {
@@ -333,13 +331,15 @@ public class Mysql extends DataBase {
         this.query_point_action_count.setInt(4, dimension_id);       // 替换为指定的dimension值
 
         ResultSet res = this.query_point_action_count.executeQuery();//执行查询
-        res.next();
-        return res.getInt("count");//返回一共有几个结果
+        if (res.next()) {
+            return res.getInt("count");//返回一共有几个结果
+        }
+        return 0;
     }
 
     @Override
     public ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception {
-        int start_pos = query_task.Max_PAGE_AMOUNT * query_task.pageId;
+        int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
         int dimension_id = this.GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的名字
 
         this.query_point_action.setInt(1, query_task.x);      // 替换为指定的x值
@@ -368,30 +368,57 @@ public class Mysql extends DataBase {
 
     @Override
     public int GetAreaActionCount(QueryTask query_task) throws Exception {
-        int start_pos = query_task.Max_PAGE_AMOUNT * query_task.pageId;
 
-        this.getQuery_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(4, query_task.y + query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(5, query_task.z - query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(6, query_task.z + query_task.MAX_AREA_QUERY_AREA_RADIUS);
-        this.getQuery_area_action_count.setInt(8, start_pos);
-        this.getQuery_area_action_count.setInt(9, query_task.Max_PAGE_AMOUNT);
+        this.Query_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.Query_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.Query_area_action_count.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.Query_area_action_count.setInt(4, query_task.y + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.Query_area_action_count.setInt(5, query_task.z - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.Query_area_action_count.setInt(6, query_task.z + query_task.MAX_AREA_QUERY_AREA_RADIUS);
 
         int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
-        this.getQuery_area_action_count.setInt(7, dimension_id);
+        this.Query_area_action_count.setInt(7, dimension_id);
 
-        System.out.println(this.getQuery_area_action_count.toString());//FIXME
+        ResultSet res = this.Query_area_action_count.executeQuery();//执行查询
 
-        ResultSet res = this.getQuery_area_action_count.executeQuery();//执行查询
-        res.next();
-        return res.getInt("count");//返回结果
+        if (res.next()) {
+            return res.getInt("count");//返回结果
+        }
+        return 0;
     }
 
     @Override
-    public ArrayList<Action> GetAreaAction(QueryTask query_task) {
-        return null;
+    public ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception {
+        int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
+
+        this.query_area_action.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(4, query_task.y + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(5, query_task.z - query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(6, query_task.z + query_task.MAX_AREA_QUERY_AREA_RADIUS);
+        this.query_area_action.setInt(8, start_pos);
+        this.query_area_action.setInt(9, query_task.Max_PAGE_AMOUNT);
+
+        int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+        this.query_area_action.setInt(7, dimension_id);
+
+        ResultSet res = this.query_area_action.executeQuery();//执行查询
+        ArrayList<Action> temp = new ArrayList<>();
+
+        while (res.next())//遍历结果集
+        {
+            Player player = GetPlayerById(res.getInt("player"));
+            String action = GetActionById(res.getInt("action"));
+            String dimension_name = GetDimensionById(res.getInt("dimension"));
+            String obj_name = GetObjByActionAndId(action, res.getInt("target"));
+
+            Action action_temp = new Action(action, player, obj_name,
+                    res.getInt("x"), res.getInt("y"), res.getInt("z"), dimension_name, res.getString("data"));
+            action_temp.time = res.getLong("time");
+            temp.add(action_temp);
+        }
+        return temp;//返回结果
     }
 
 
@@ -416,18 +443,32 @@ public class Mysql extends DataBase {
         }
 
         for (String ele : db_missing_tables_list) {
-            String create_table_str = switch (ele) {//检查数据库的表是否缺失
-                case "tg_action" ->//判断是行为的表缺失
-                        Tables.Mysql.CREATE_TG_ACTION;
-                case "tg_action_map" -> Tables.Mysql.CREATE_TG_ACTION_MAP;
-                case "tg_dimension_map" -> Tables.Mysql.CREATE_TG_DIMENSION_MAP;
-                case "tg_entity_map" -> Tables.Mysql.CREATE_TG_ENTITY_MAP;
-                case "tg_item_map" -> Tables.Mysql.CREATE_TG_ITEM_MAP;
-                case "tg_player_map" -> Tables.Mysql.CREATE_TG_PLAYER_MAP;
-                default -> throw new Exception("Internal error: could not get the command of the missing table.");
-            };
+            String create_table_str = "";
+            switch (ele) {//检查数据库的表是否缺失
+                case "tg_action"://判断是行为的表缺失
+                    create_table_str = Tables.Mysql.CREATE_TG_ACTION;
+                    break;
+                case "tg_action_map":
+                    create_table_str = Tables.Mysql.CREATE_TG_ACTION_MAP;
+                    break;
+                case "tg_dimension_map":
+                    create_table_str = Tables.Mysql.CREATE_TG_DIMENSION_MAP;
+                    break;
+                case "tg_entity_map":
+                    create_table_str = Tables.Mysql.CREATE_TG_ENTITY_MAP;
+                    break;
+                case "tg_item_map":
+                    create_table_str = Tables.Mysql.CREATE_TG_ITEM_MAP;
+                    break;
+                case "tg_player_map":
+                    create_table_str = Tables.Mysql.CREATE_TG_PLAYER_MAP;
+                    break;
+                default:
+                    throw new Exception("Internal error: could not get the command of the missing table.");
+            }
 
-            if (create_table_str != null)//判断创建表的语句不为空,则证明有表缺失
+
+            if (create_table_str != "")//判断创建表的语句不为空,则证明有表缺失
             {
                 stmt.execute(create_table_str);//执行创建表的命令
             }
@@ -473,7 +514,7 @@ public class Mysql extends DataBase {
         this.insert_player_map = this.mConn.prepareStatement(Tables.Mysql.INSERT_PLAYER_MAP_STR);
         this.query_point_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_POINT_ACTION_COUNT);
         this.query_point_action = this.mConn.prepareStatement(Tables.Mysql.QUERY_POINT_ACTION);
-        this.getQuery_area_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_AREA_ACTION_COUNT);
+        this.Query_area_action_count = this.mConn.prepareStatement(Tables.Mysql.QUERY_AREA_ACTION_COUNT);
         this.query_area_action = this.mConn.prepareStatement(Tables.Mysql.QUERY_AREA_ACTION);
 
 

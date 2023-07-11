@@ -45,7 +45,7 @@ public class TheStarryGuard implements ModInitializer {
 
                 String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
                 QueryTask task = new QueryTask(pos.getX(), pos.getY(), pos.getZ(),
-                        dimension_name, QueryTask.QueryType.POINT, player_name, 0);
+                        dimension_name, QueryTask.QueryType.POINT, player_name, 1);
                 //创建一个新的查询任务,默认显示第一页的内容,因为是点击,所以为点查询
                 this.mDataQuery.AddQueryTask(task);//添加查询任务
 

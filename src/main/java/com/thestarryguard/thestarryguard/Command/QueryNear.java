@@ -34,7 +34,7 @@ public class QueryNear {//查询区域的命令
                                         String dimension_name = player.getWorld().getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
 
                                         QueryTask task = new QueryTask(location.getX(), location.getY(), location.getZ(), dimension_name,
-                                                QueryTask.QueryType.AREA, player_name,0);
+                                                QueryTask.QueryType.AREA, player_name,1);
 
                                         this.mDataQuery.AddQueryTask(task);//加入查询的任务
 

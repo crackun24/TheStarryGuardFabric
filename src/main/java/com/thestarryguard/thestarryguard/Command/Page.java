@@ -31,7 +31,6 @@ public class Page {
                                         if (player_name.isEmpty())//无法获取玩家的UUID则直接返回
                                             return 1;
                                         int page = IntegerArgumentType.getInteger(context,"page");//获取玩家输入的页数
-                                        page -=1;//mysql从0开始,要减一,符合玩家的阅读习惯
                                         this.mDataQuery.AddPageQuery(player_name,page);//将玩家的请求添加
 
                                     } catch (Exception e) {

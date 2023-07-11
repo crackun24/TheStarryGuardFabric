@@ -57,7 +57,7 @@ public class Tables {
         public static final String QUERY_POINT_ACTION = "SELECT * FROM tg_action WHERE x = ? AND y = ? AND z = ? AND dimension = ? ORDER BY time DESC LIMIT ?, ?";
         public static final String QUERY_POINT_ACTION_COUNT = "SELECT COUNT(*) AS count FROM tg_action WHERE x = ? AND y = ? AND z = ? AND dimension = ?";
         public static final String QUERY_AREA_ACTION = "SELECT * FROM tg_action WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? AND dimension = ? ORDER BY time DESC LIMIT ?,?";
-        public static final String QUERY_AREA_ACTION_COUNT = "SELECT COUNT(*) AS count FROM tg_action WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? AND dimension = ? ORDER BY time DESC LIMIT ?,?";
+        public static final String QUERY_AREA_ACTION_COUNT = "SELECT COUNT(*) AS count FROM tg_action WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? AND dimension = ? ORDER BY time DESC";
     }
 
 

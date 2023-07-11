@@ -21,27 +21,65 @@ public class DataQuery extends Thread {//数据查询类
 
     private DataBase mDataBase;
 
-    private synchronized void DoAreaTask(QueryTask task) throws Exception {//完成区域的人物
-       int amount = this.mDataBase.GetAreaActionCount(task);
-        int total_page = amount % task.Max_PAGE_AMOUNT == 0 ? amount / task.Max_PAGE_AMOUNT : amount / task.Max_PAGE_AMOUNT + 1;
-        StringBuilder data_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(amount), Integer.toString(amount == 0 ? 0 : 1), Integer.toString(total_page)));
-
-        this.mMain.SendMsgToPlayer(task.senderName, Text.literal(data_to_send.toString()));//默认发送第一页的内容
-    }
-
-    private synchronized void DoPointTask(QueryTask task) throws Exception//完成点的任务
+    private synchronized void DoTask() throws Exception//完成任务列表中的人物
     {
-        int amount = this.mDataBase.GetPointActionCount(task);
-        int total_page = amount % task.Max_PAGE_AMOUNT == 0 ? amount / task.Max_PAGE_AMOUNT : amount / task.Max_PAGE_AMOUNT + 1;
-        //总共的页数
-        if (task.pageId > total_page)//判断是否大于最大的页数
+        if (this.mQueryTask.isEmpty())//如果任务队列为空,则直接返回
         {
-            this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
             return;
         }
-        ArrayList<Action> action_list = this.mDataBase.GetPointAction(task);//获取指定的行为
+        QueryTask task = this.mQueryTask.poll();//弹出位于第一个的任务
+        ArrayList<Action> action_list;//玩家的行为列表
+        int total_page;//总共的页数
+        int total_entries;//总共的条目数
 
-        StringBuilder data_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(amount), Integer.toString(amount == 0 ? 0 : 1), Integer.toString(total_page)));
+        if (task.pageId <= 0) {
+            this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cInvalid page count."));//发送错误消息给玩家
+            return;
+        }
+
+
+        switch (task.queryType)//判断查询的类型
+        {
+            case POINT:
+                total_entries = this.mDataBase.GetPointActionCount(task);//获取符合要求的行为的数量
+                total_page = total_entries % task.Max_PAGE_AMOUNT == 0 ? total_entries / task.Max_PAGE_AMOUNT : total_entries / task.Max_PAGE_AMOUNT + 1;
+
+                if(total_entries ==0)
+                {
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNo data."));//发送错误消息给玩家
+                    return;
+                }
+                if (task.pageId > total_page) {//判断玩家查询的页数是否大于最大的页数
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
+                    return;
+                }
+
+                action_list = this.mDataBase.GetPointAction(task);//获取点的所有行为
+                break;
+
+            case AREA:
+                total_entries = this.mDataBase.GetAreaActionCount(task);//获取符合要求的行为的数量
+                total_page = total_entries % task.Max_PAGE_AMOUNT == 0 ? total_entries / task.Max_PAGE_AMOUNT : total_entries / task.Max_PAGE_AMOUNT + 1;
+
+                if(total_entries ==0)
+                {
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNo data."));//发送错误消息给玩家
+                    return;
+                }
+
+                if (task.pageId > total_page) {//判断玩家查询的页数是否大于最大的页数
+                    System.out.println(String.format("%s:%s",Integer.toString(task.pageId),Integer.toString(total_page)));
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
+                    return;
+                }
+
+                action_list = this.mDataBase.GetAreaAction(task);//获取点的所有行为
+                break;
+            default://如果是未知的类型
+                throw new IllegalStateException("Unexpected value: " + task.queryType);
+        }
+
+        StringBuilder msg_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(total_entries), Integer.toString(total_entries == 0 ? 0 : task.pageId), Integer.toString(total_page)));//发送给玩家的消息
 
         long time = System.currentTimeMillis() / 1000;
         for (Action action : action_list)//遍历返回的结果集
@@ -49,31 +87,12 @@ public class DataQuery extends Thread {//数据查询类
             long delta_time = time - action.time;//获取时间差
             String entry = String.format("%s %s %s, %s ago.\n", action.player.name, action.actionType, action.targetName,
                     Tool.GetDateLengthDes(delta_time));
-            data_to_send.append(entry);
+            msg_to_send.append(entry);
         }
 
         this.mPlayerLastTask.put(task.senderName, task);//放入玩家与上一个任务的映射中
 
-        this.mMain.SendMsgToPlayer(task.senderName, Text.literal(data_to_send.toString()));//默认发送第一页的内容
-    }
-
-    private synchronized void DoTask() throws Exception//完成任务列表中的人物
-    {
-        while (!this.mQueryTask.isEmpty())//如果不是则一直循环
-        {
-            QueryTask task = this.mQueryTask.poll();//弹出位于第一个的任务
-            switch (task.queryType)//判断查询的类型
-            {
-                case POINT:
-                    DoPointTask(task);
-                    break;
-                case AREA:
-                    DoAreaTask(task);
-                    break;
-                default://如果是未知的类型
-                    throw new IllegalStateException("Unexpected value: " + task.queryType);
-            }
-        }
+        this.mMain.SendMsgToPlayer(task.senderName, Text.literal(msg_to_send.toString()));//默认发送第一页的内容
     }
 
     private Boolean GetCloseState()//获取关闭状态
@@ -94,6 +113,7 @@ public class DataQuery extends Thread {//数据查询类
             }
         }
     }
+
 
     public synchronized Boolean IsPlayerHookPointQuery(String player_uuid)//判断玩家是否启用了点方块查询的指令
     {
