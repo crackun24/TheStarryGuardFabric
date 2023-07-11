@@ -2,6 +2,7 @@ package com.thestarryguard.thestarryguard;
 
 import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
 import com.thestarryguard.thestarryguard.DataBaseStorage.Mysql;
+import com.thestarryguard.thestarryguard.DataBaseStorage.Sqlite;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
@@ -22,10 +23,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.jmx.Server;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 
 
 public class TheStarryGuard implements ModInitializer {
@@ -34,10 +34,15 @@ public class TheStarryGuard implements ModInitializer {
 
     DataStorage mDataStorage;//数据储存类
     DataQuery mDataQuery;//数据查询对象
-
     CommandMgr mCommandMgr;//命令管理对象
     MinecraftServer mServer;
-
+    Lang mLang;//语言对象
+    private void LoadLang() throws IOException//加载语言文件
+    {
+        String config_path = FabricLoader.getInstance().getConfigDir().toFile().getPath();//获取配置文件的路径
+        File lang_file_path = new File(config_path + "/TheStarryGuard/lang.properties");//语言文件
+        this.mLang = Lang.LoadLang(lang_file_path);
+    }
     private void HookBlockBreakEvent() {
         PlayerBlockBreakEvents.BEFORE.register(((world, player, pos, state, blockEntity) -> {
             String player_name = player.getName().getString();
@@ -130,13 +135,16 @@ public class TheStarryGuard implements ModInitializer {
                 String url = String.format("jdbc:mysql://%s:%s/%s?autoReconnect=true&serverTimezone=UTC&useSSL=false&user=%s&password=%s", db_host, db_port, db_name, db_user, db_pass);
                 data_base = Mysql.GetMysql(url);//构建一个mysql数据库连接对象
             }
-            case "sql_lite" -> data_base = null;//fixme
+            case "sqlite" -> {
+                File config_dir = FabricLoader.getInstance().getConfigDir().toFile();//获取配置文件存放的根目录
+                File database_path = new File(config_dir.getPath() + "/TheStarryGuard" + Sqlite.FILE_NAME);
+                data_base = Sqlite.GetSqlite(database_path);//构建一个sqlite数据库的连接对象
+            }
             default -> throw new RuntimeException("Unable to confirm the database type used.");//如果无法确认使用的数据库类型,直接抛出异常
         }
 
-
         this.mDataStorage = DataStorage.GetDataStorage(data_base);//构造数据储存对象
-        this.mDataQuery = DataQuery.GetDataQuery(data_base,this);//构造数据查询对象
+        this.mDataQuery = DataQuery.GetDataQuery(data_base, this,mLang);//构造数据查询对象
         this.mDataStorage.start();//启动数据同步线程
         this.mDataQuery.start();//启动数据查询线程
     }
@@ -161,7 +169,7 @@ public class TheStarryGuard implements ModInitializer {
     }//注册配置文件中的事件
 
     private void RegCommand() {
-        this.mCommandMgr = new CommandMgr(this.mDataQuery);//初始化命令管理对象
+        this.mCommandMgr = new CommandMgr(this.mDataQuery,this.mLang);//初始化命令管理对象
         this.mCommandMgr.RegAllCommand();//注册所有的指令
     }
 
@@ -177,7 +185,7 @@ public class TheStarryGuard implements ModInitializer {
         ServerPlayerEntity player = this.mServer.getPlayerManager().getPlayer(name);//获取玩家对象
         if (player != null) {
             player.sendMessage(text);//发送消息
-        }else{
+        } else {
             LOGGER.info("Could not find player");
         }
     }
@@ -186,6 +194,7 @@ public class TheStarryGuard implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Loading TheStarryGuard");
         try {
+            LoadLang();//加载语言文件
             LoadConfig();//加载配置文件
             HookEvent();//注册配置文件中启用的事件
             CreateDataStorageAndQuery();//创建数据储存对象

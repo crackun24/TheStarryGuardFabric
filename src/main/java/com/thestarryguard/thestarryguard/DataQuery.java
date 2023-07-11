@@ -13,6 +13,7 @@ public class DataQuery extends Thread {//数据查询类
     private HashMap<String, QueryTask> mPlayerLastTask;//玩家上一次查询的任务对照,方便进行翻页的操作
     private Queue<QueryTask> mQueryTask;//查询任务的玩家
     private Boolean mCloseState;//主线程的关闭状态
+    private Lang mLang;//语言文件
 
     private DataQuery()//构造函数
     {
@@ -33,7 +34,7 @@ public class DataQuery extends Thread {//数据查询类
         int total_entries;//总共的条目数
 
         if (task.pageId <= 0) {
-            this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cInvalid page count."));//发送错误消息给玩家
+            this.mMain.SendMsgToPlayer(task.senderName, Text.literal(this.mLang.ILLEGAL_PAGE));//发送错误消息给玩家
             return;
         }
 
@@ -44,13 +45,12 @@ public class DataQuery extends Thread {//数据查询类
                 total_entries = this.mDataBase.GetPointActionCount(task);//获取符合要求的行为的数量
                 total_page = total_entries % task.Max_PAGE_AMOUNT == 0 ? total_entries / task.Max_PAGE_AMOUNT : total_entries / task.Max_PAGE_AMOUNT + 1;
 
-                if(total_entries ==0)
-                {
-                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNo data."));//发送错误消息给玩家
+                if (total_entries == 0) {
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal(this.mLang.NO_DATA));//发送错误消息给玩家
                     return;
                 }
                 if (task.pageId > total_page) {//判断玩家查询的页数是否大于最大的页数
-                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal(this.mLang.INVALID_PAGE));//发送错误消息给玩家
                     return;
                 }
 
@@ -61,15 +61,13 @@ public class DataQuery extends Thread {//数据查询类
                 total_entries = this.mDataBase.GetAreaActionCount(task);//获取符合要求的行为的数量
                 total_page = total_entries % task.Max_PAGE_AMOUNT == 0 ? total_entries / task.Max_PAGE_AMOUNT : total_entries / task.Max_PAGE_AMOUNT + 1;
 
-                if(total_entries ==0)
-                {
-                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNo data."));//发送错误消息给玩家
+                if (total_entries == 0) {
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal(this.mLang.NO_DATA));//发送错误消息给玩家
                     return;
                 }
 
                 if (task.pageId > total_page) {//判断玩家查询的页数是否大于最大的页数
-                    System.out.println(String.format("%s:%s",Integer.toString(task.pageId),Integer.toString(total_page)));
-                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal("§cNot such page."));//发送错误消息给玩家
+                    this.mMain.SendMsgToPlayer(task.senderName, Text.literal(this.mLang.INVALID_PAGE));//发送错误消息给玩家
                     return;
                 }
 
@@ -79,13 +77,15 @@ public class DataQuery extends Thread {//数据查询类
                 throw new IllegalStateException("Unexpected value: " + task.queryType);
         }
 
-        StringBuilder msg_to_send = new StringBuilder(String.format("Totally %s entries,Page: %s / %s \n", Integer.toString(total_entries), Integer.toString(total_entries == 0 ? 0 : task.pageId), Integer.toString(total_page)));//发送给玩家的消息
+        StringBuilder msg_to_send = new StringBuilder(String.format(this.mLang.PAGE_TITLE,
+                Integer.toString(total_entries), Integer.toString(total_entries == 0 ? 0 : task.pageId),
+                Integer.toString(total_page)));//发送给玩家的消息
 
         long time = System.currentTimeMillis() / 1000;
         for (Action action : action_list)//遍历返回的结果集
         {
             long delta_time = time - action.time;//获取时间差
-            String entry = String.format("%s %s %s, %s ago.\n", action.player.name, action.actionType, action.targetName,
+            String entry = String.format(this.mLang.PAGE_ENTRY, action.player.name, action.actionType, action.targetName,
                     Tool.GetDateLengthDes(delta_time));
             msg_to_send.append(entry);
         }
@@ -144,7 +144,7 @@ public class DataQuery extends Thread {//数据查询类
     {
         if (!this.mPlayerLastTask.containsKey(player_name)) //判断是否有这个玩家的上一次请求
         {
-            this.mMain.SendMsgToPlayer(player_name, Text.literal("§cPage not found."));
+            this.mMain.SendMsgToPlayer(player_name, Text.literal(this.mLang.INVALID_PAGE));
             return;
         }
         QueryTask task = this.mPlayerLastTask.get(player_name);//获取玩家的上一次的人物
@@ -153,7 +153,7 @@ public class DataQuery extends Thread {//数据查询类
         this.mQueryTask.add(task);//将改写后的任务添加进队列中
     }
 
-    static public DataQuery GetDataQuery(DataBase data_base, TheStarryGuard main) {//创建一个data_query对象
+    static public DataQuery GetDataQuery(DataBase data_base, TheStarryGuard main, Lang lang) {//创建一个data_query对象
         DataQuery temp = new DataQuery();
         temp.mDataBase = data_base;//设置使用的数据库
         temp.mPointQueryPlayer = new HashMap<>();//初始化哈希表
@@ -161,6 +161,7 @@ public class DataQuery extends Thread {//数据查询类
         temp.mPlayerLastTask = new HashMap<>();//初始化玩家的上一个哈希表
         temp.mCloseState = false;
         temp.mMain = main;
+        temp.mLang = lang;
         return temp;//返回构造好的对象
     }
 }

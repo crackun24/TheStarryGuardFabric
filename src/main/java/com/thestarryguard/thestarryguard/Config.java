@@ -23,8 +23,6 @@ public class Config {//配置文件类
 
     static public Config LoadConfig(String file_path) throws IOException//加载配置文件
     {
-        System.out.println(file_path + "/TheStarryGuard");//FIXME
-
         Config temp_obj = new Config();//配置文件对象
         File config_folder = new File(file_path + "/TheStarryGuard");//文件夹的路径
 

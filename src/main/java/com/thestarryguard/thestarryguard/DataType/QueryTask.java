@@ -1,6 +1,7 @@
 package com.thestarryguard.thestarryguard.DataType;
 
 import com.mysql.cj.QueryReturnType;
+import com.thestarryguard.thestarryguard.Lang;
 
 public class QueryTask {//玩家请求的查询任务
 

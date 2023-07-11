@@ -2,6 +2,7 @@ package com.thestarryguard.thestarryguard.Command;
 
 import com.thestarryguard.thestarryguard.DataQuery;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
+import com.thestarryguard.thestarryguard.Lang;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -11,6 +12,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public class QueryNear {//查询区域的命令
     private DataQuery mDataQuery;
+    private Lang mLang;
 
     public void RegQueryAreaCommand() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
@@ -49,7 +51,9 @@ public class QueryNear {//查询区域的命令
         ));
     }
 
-    public QueryNear(DataQuery data_query) {
+    public QueryNear(DataQuery data_query, Lang lang) {
         this.mDataQuery = data_query;
+        this.mLang = lang;
     }
+
 }
