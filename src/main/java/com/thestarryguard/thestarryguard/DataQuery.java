@@ -112,6 +112,11 @@ public class DataQuery extends Thread {//数据查询类
                 e.printStackTrace();
             }
         }
+        try {
+            DoTask();//完成最后的任务
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
     }
 
 
