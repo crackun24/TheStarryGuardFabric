@@ -2,7 +2,7 @@ package com.thestarryguard.thestarryguard.DataType;
 
 public class Action {//玩家的行为类
     public static final String ATTACK_ACTION_NAME = "attack";
-    public static final String BLOCK_USE_ACTION_NAME = "block_use";
+    public static final String BLOCK_PLACE = "block_place";
     public static final String BLOCK_BREAK_ACTION_NAME = "block_break";
 
     public Player player;

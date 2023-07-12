@@ -6,6 +6,7 @@ import com.thestarryguard.thestarryguard.DataBaseStorage.Sqlite;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
+import com.thestarryguard.thestarryguard.Events.BlockPlaceEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -37,12 +38,14 @@ public class TheStarryGuard implements ModInitializer {
     CommandMgr mCommandMgr;//命令管理对象
     MinecraftServer mServer;
     Lang mLang;//语言对象
+
     private void LoadLang() throws IOException//加载语言文件
     {
         String config_path = FabricLoader.getInstance().getConfigDir().toFile().getPath();//获取配置文件的路径
         File lang_file_path = new File(config_path + "/TheStarryGuard/lang.properties");//语言文件
         this.mLang = Lang.LoadLang(lang_file_path);
     }
+
     private void HookBlockBreakEvent() {
         PlayerBlockBreakEvents.BEFORE.register(((world, player, pos, state, blockEntity) -> {
             String player_name = player.getName().getString();
@@ -70,29 +73,6 @@ public class TheStarryGuard implements ModInitializer {
         }));//方块破坏事件
     }//注册方块破坏事件
 
-    private void HookBlockUseEvent() {
-        UseBlockCallback.EVENT.register(((player, world, hand, hitResult) -> {
-            if (hitResult.getType() == HitResult.Type.BLOCK &&
-                    (player.getMainHandStack().getItem() != Items.AIR || player.getOffHandStack().getItem() != Items.AIR)) {//判断操作的对象是否为方块
-
-
-                BlockPos location = hitResult.getBlockPos();//获取方块的坐标
-                String block_id = Registries.ITEM.getId(
-                                player.getMainHandStack().getItem() == Items.AIR ? player.getOffHandStack().getItem() : player.getMainHandStack().getItem())
-                        .toString();//获取玩家使用的方块的ID
-                String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
-
-                Action action = new Action(Action.BLOCK_USE_ACTION_NAME, new Player(player.getName().getString(),
-                        player.getUuidAsString()),
-                        block_id, location.getX(), location.getY(), location.getZ(), dimension_name, null);
-
-                this.mDataStorage.InsertAction(action);//插入玩家使用方块的行为对象
-            }
-
-            return ActionResult.PASS;
-        }));
-    }//注册方块放置事件
-
 
     private void HookEntityAttackEvent() {
         AttackEntityCallback.EVENT.register(((player1, world1, hand1, entity, hitResult) -> {
@@ -108,6 +88,23 @@ public class TheStarryGuard implements ModInitializer {
         }));
     }//注册玩家攻击实体事件
 
+    private void HookBlockPlaceEvent()//方块放置的事件
+    {
+        BlockPlaceEvent.EVENT.register(((world, pos, state, placer, itemStack, ci) -> {
+
+            String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
+            String block_id = Registries.BLOCK.getId(state.getBlock()).toUnderscoreSeparatedString();//获取玩家使用的方块的ID
+
+            Action action = new Action(Action.BLOCK_PLACE, new Player(placer.getName().getString(),
+                    placer.getUuidAsString()),
+                    block_id, pos.getX(), pos.getY(), pos.getZ(), dimension_name, null);
+            this.mDataStorage.InsertAction(action);
+            LOGGER.info("place");
+            return ActionResult.PASS;
+        }
+        ));
+    }
+
     private void HookServerStart() {
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             this.mServer = server;//获取服务器对象
@@ -120,6 +117,7 @@ public class TheStarryGuard implements ModInitializer {
             this.mDataQuery.CloseDataQuery();
         }));//注册服务器关闭时向子线程发送关闭信号
     }
+
 
     private void CreateDataStorageAndQuery()//创建一个数据储存对象和查询对象
     {
@@ -144,7 +142,7 @@ public class TheStarryGuard implements ModInitializer {
         }
 
         this.mDataStorage = DataStorage.GetDataStorage(data_base);//构造数据储存对象
-        this.mDataQuery = DataQuery.GetDataQuery(data_base, this,mLang);//构造数据查询对象
+        this.mDataQuery = DataQuery.GetDataQuery(data_base, this, mLang);//构造数据查询对象
         this.mDataStorage.start();//启动数据同步线程
         this.mDataQuery.start();//启动数据查询线程
     }
@@ -159,7 +157,7 @@ public class TheStarryGuard implements ModInitializer {
 
         if (Boolean.parseBoolean(this.mConfig.GetValue("hook_block_use_event")))//判断是否注册方块放置的事件
         {
-            HookBlockUseEvent();//如果启用则注册使用方块事件
+            HookBlockPlaceEvent();
         }
 
         if (Boolean.parseBoolean(this.mConfig.GetValue("hook_attack_entity_event"))) //判断是否注册攻击实体的事件
@@ -169,7 +167,7 @@ public class TheStarryGuard implements ModInitializer {
     }//注册配置文件中的事件
 
     private void RegCommand() {
-        this.mCommandMgr = new CommandMgr(this.mDataQuery,this.mLang);//初始化命令管理对象
+        this.mCommandMgr = new CommandMgr(this.mDataQuery, this.mLang);//初始化命令管理对象
         this.mCommandMgr.RegAllCommand();//注册所有的指令
     }
 
