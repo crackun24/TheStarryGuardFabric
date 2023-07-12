@@ -11,20 +11,15 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -99,7 +94,6 @@ public class TheStarryGuard implements ModInitializer {
                     placer.getUuidAsString()),
                     block_id, pos.getX(), pos.getY(), pos.getZ(), dimension_name, null);
             this.mDataStorage.InsertAction(action);
-            LOGGER.info("place");
             return ActionResult.PASS;
         }
         ));
