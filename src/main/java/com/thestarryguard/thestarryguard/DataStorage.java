@@ -50,13 +50,6 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
         this.isClose = false;//设置未关闭的状态
     }
 
-    public synchronized void PrintList() {//FIXME 测试方法
-        Iterator<Action> iterator = this.mActionList.iterator();
-        while (iterator.hasNext()) {
-            Action temp = iterator.next();
-            LOGGER.info(temp.posX);
-        }
-    }
 
     public synchronized void InsertAction(Action action) {//插入数据
         this.mActionList.add(action);
@@ -73,7 +66,6 @@ public class DataStorage extends Thread {//数据储存类,同时启动线程,�
         while (!GetMainCloseState()) {//主线程未发送关闭信号时无限循环
             try {
                 sleep(1000);
-                //PrintList();//FIXME 调试
                 PutActionToDb();//弹出玩家的行为
             } catch (Exception e) {
                 LOGGER.error(String.format("An error occurred when running the data: %s", e.toString()));

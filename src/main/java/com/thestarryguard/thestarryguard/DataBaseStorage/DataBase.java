@@ -269,8 +269,10 @@ public abstract class DataBase {//数据库的通用接口定义
         {
             case BLOCK_PLACE, BLOCK_BREAK_ACTION_NAME:
                 return GetItemById(obj_id);
-            case ATTACK_ACTION_NAME:
+            case ATTACK_ACTION_NAME, KILL_ENTITY_ACTION_NAME:
                 return GetEntityById(obj_id);
+            case KILL_PLAYER_ACTION_NAME://如果是玩家事件的话获取玩家的名字
+                return GetPlayerById(obj_id).name;
             default:
                 throw new RuntimeException("Could not find the action.");
         }
@@ -282,15 +284,23 @@ public abstract class DataBase {//数据库的通用接口定义
         int player_id = GetOrCreatePlayerMap(action.player);//
         int dimension_id = GetOrCreateDimensionMap(action.dimension);
 
-        target_id = switch (action.actionType) {//判断玩家的行为的类型
-            case Action.BLOCK_BREAK_ACTION_NAME, BLOCK_PLACE ->//方块破坏事件或者方块使用事件则直接获取方块的id
-                    GetOrCreateItemMap(action.targetName);//获取方块的id
+        switch (action.actionType) {//判断玩家的行为的类型
+            case Action.BLOCK_BREAK_ACTION_NAME, BLOCK_PLACE://方块破坏事件或者方块使用事件则直接获取方块的id
+                target_id = GetOrCreateItemMap(action.targetName);//获取方块的id
+                break;
             //获取方块id
-            case Action.ATTACK_ACTION_NAME ->//实体攻击事件
-                    GetOrCreateEntityMap(action.targetName);//获取实体ID
-            default ->//如果无法找到行为的映射则直接抛出异常
+            case Action.ATTACK_ACTION_NAME ,KILL_ENTITY_ACTION_NAME://实体攻击事件
+                    target_id = GetOrCreateEntityMap(action.targetName);//获取实体ID
+                break;
+            case KILL_PLAYER_ACTION_NAME:
+                String[] split_data = action.targetName.split(":");//分割字符串
+                String player_name = split_data[0];//玩家的名字放在第一部分
+                String player_uuid = split_data[1];//玩家的uuid放在第一部分
+                target_id = GetOrCreatePlayerMap(new Player(player_name,player_uuid));
+                break;
+            default://如果无法找到行为的映射则直接抛出异常
                     throw new Exception("Could not get the map of the type of the action.");
-        };
+        }
 
         this.insert_action.setInt(1, player_id);          // 设置 player 参数值
         this.insert_action.setInt(2, action_id);          // 设置 action 参数值

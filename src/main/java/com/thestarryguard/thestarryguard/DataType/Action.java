@@ -4,6 +4,8 @@ public class Action {//玩家的行为类
     public static final String ATTACK_ACTION_NAME = "attack";
     public static final String BLOCK_PLACE = "block_place";
     public static final String BLOCK_BREAK_ACTION_NAME = "block_break";
+    public static final String KILL_ENTITY_ACTION_NAME = "kill_entity";
+    public static final String KILL_PLAYER_ACTION_NAME = "kill_player";
 
     public Player player;
     public int posX;

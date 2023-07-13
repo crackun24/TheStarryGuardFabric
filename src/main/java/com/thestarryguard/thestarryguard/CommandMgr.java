@@ -6,6 +6,7 @@ import com.thestarryguard.thestarryguard.Command.QueryPoint;
 import com.thestarryguard.thestarryguard.Command.QueryVer;
 
 public class CommandMgr {//命令管理类
+    public static final String COMMAND_PREFIX = "tsg";//命令的前缀
     private QueryVer mQueryVer;//查询版本信息的指令
     private QueryPoint mQueryPoint;//查询该点的信息的指令
     private Page mPageQuery;//查询页数的指令

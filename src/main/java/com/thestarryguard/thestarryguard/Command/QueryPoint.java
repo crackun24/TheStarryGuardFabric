@@ -1,5 +1,6 @@
 package com.thestarryguard.thestarryguard.Command;
 
+import com.thestarryguard.thestarryguard.CommandMgr;
 import com.thestarryguard.thestarryguard.DataQuery;
 import com.thestarryguard.thestarryguard.Lang;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -13,7 +14,7 @@ public class QueryPoint {//查询点的指令
 
     public void RegQueryPointCommand() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal("TSGuard")
+                literal(CommandMgr.COMMAND_PREFIX)
                         .then(literal("check")
                                 .executes(context -> {
                                     // 在这里执行您的操作

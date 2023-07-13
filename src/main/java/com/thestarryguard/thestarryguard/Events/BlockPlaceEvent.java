@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 public interface BlockPlaceEvent {
     Event<BlockPlaceEvent> EVENT = EventFactory.createArrayBacked(BlockPlaceEvent.class,
-            (listeners) -> (world, pos, state, placer, itemStack, ci) -> {
+            (listeners) -> (world, pos, state, placer, itemStack) -> {
                 for (BlockPlaceEvent listener : listeners) {
-                    ActionResult result = listener.interact(world, pos, state, placer, itemStack, ci);
+                    ActionResult result = listener.interact(world, pos, state, placer, itemStack);
                     if (result != ActionResult.PASS) {
                         return result;
                     }
@@ -24,5 +24,5 @@ public interface BlockPlaceEvent {
             }
     );
 
-    ActionResult interact(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack, CallbackInfo ci);
+    ActionResult interact(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack);
 }

@@ -19,7 +19,7 @@ public class Config {//配置文件类
             mysql_port = port
 
             hook_block_break_event = true
-            hook_block_use_event = true
+            hook_block_place_event = true
             hook_attack_entity_event = true
             """;//默认的配置文件信息
     private Properties prop;//properties的配置文件读取对象

@@ -1,14 +1,9 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
-import com.thestarryguard.thestarryguard.DataType.Action;
-import com.thestarryguard.thestarryguard.DataType.Player;
-import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.DataType.Tables;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.sql.*;
-
-import static com.thestarryguard.thestarryguard.DataType.Action.*;
 
 public class Mysql extends DataBase {
 

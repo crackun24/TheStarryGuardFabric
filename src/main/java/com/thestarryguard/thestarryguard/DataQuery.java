@@ -22,7 +22,7 @@ public class DataQuery extends Thread {//数据查询类
 
     private DataBase mDataBase;
 
-    private synchronized void DoTask() throws Exception//完成任务列表中的人物
+    private synchronized void DoTask() throws Exception//完成任务列表中的任务
     {
         if (this.mQueryTask.isEmpty())//如果任务队列为空,则直接返回
         {

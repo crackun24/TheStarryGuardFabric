@@ -1,5 +1,6 @@
 package com.thestarryguard.thestarryguard.Command;
 
+import com.thestarryguard.thestarryguard.CommandMgr;
 import com.thestarryguard.thestarryguard.DataQuery;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.Lang;
@@ -16,7 +17,7 @@ public class QueryNear {//查询区域的命令
 
     public void RegQueryAreaCommand() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal("TSGuard")
+                literal(CommandMgr.COMMAND_PREFIX)
                         .then(literal("near")
                                 .executes(context -> {
                                     // 在这里执行您的操作
