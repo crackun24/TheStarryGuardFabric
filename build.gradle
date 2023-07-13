@@ -17,8 +17,8 @@ repositories {
 
 
 dependencies {
-    implementation 'mysql:mysql-connector-java:8.0.28'
-    implementation 'org.xerial:sqlite-jdbc:3.34.0'
+    implementation (include('mysql:mysql-connector-java:8.0.28'))
+    implementation (include('org.xerial:sqlite-jdbc:3.34.0'))
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -26,9 +26,9 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
     modImplementation "mysql:mysql-connector-java:8.0.28"
     modImplementation 'org.xerial:sqlite-jdbc:3.34.0'
-    runtimeOnly 'mysql:mysql-connector-java:8.0.28'
 }
 
 processResources {
@@ -68,7 +68,6 @@ jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
     }
-
 }
 
 // configure the maven publication
@@ -78,16 +77,6 @@ publishing {
             from components.java
         }
     }
-    shadowJar {
-        dependencies {
-            include(dependency('mysql:mysql-connector-java:8.0.28'))
-        }
-    }
-    shadowJar {
-        dependencies {
-            include(dependency('org.xerial:sqlite-jdbc:3.34.0'))
-        }
-    }
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
         // Add repositories to publish to here.
@@ -95,4 +84,5 @@ publishing {
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
     }
+
 }
