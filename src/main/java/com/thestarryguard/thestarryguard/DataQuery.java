@@ -82,6 +82,7 @@ public class DataQuery extends Thread {//数据查询类
                 Integer.toString(total_page)));//发送给玩家的消息
 
         long time = System.currentTimeMillis() / 1000;
+
         for (Action action : action_list)//遍历返回的结果集
         {
             long delta_time = time - action.time;//获取时间差

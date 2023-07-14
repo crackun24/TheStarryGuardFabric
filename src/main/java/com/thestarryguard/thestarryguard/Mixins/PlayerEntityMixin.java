@@ -2,6 +2,7 @@ package com.thestarryguard.thestarryguard.Mixins;
 
 import com.mojang.authlib.GameProfile;
 import com.thestarryguard.thestarryguard.Events.PlayerKillEntityEvent;
+import com.thestarryguard.thestarryguard.Events.PlayerKillPlayerEvent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -17,18 +18,17 @@ public abstract class PlayerEntityMixin {
     @Inject(at = @At(value = "RETURN"), method = "onKilledOther")
     private void onKill(ServerWorld world, LivingEntity other, CallbackInfoReturnable<Boolean> cir) {
         try {
-            System.out.println(other.getName().getString());
-
             PlayerEntity killer = (PlayerEntity) (Object) this;
             if (other instanceof PlayerEntity)//判断是否为玩家实体
             {
-                System.out.println("player");
                 PlayerEntity death_player = (PlayerEntity) (Object) other;//获得击杀其它玩家的对象
+                PlayerKillPlayerEvent.EVENT.invoker().interact(world,killer,death_player);
+                return;
             }
             PlayerKillEntityEvent.EVENT.invoker().interact(world, killer, other);
 
         } catch (Exception e) {
-            e.printStackTrace();//FIXME
+            e.printStackTrace();
         }
     }
 }

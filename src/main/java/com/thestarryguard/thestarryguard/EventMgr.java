@@ -5,6 +5,7 @@ import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.Events.BlockPlaceEvent;
 import com.thestarryguard.thestarryguard.Events.PlayerKillEntityEvent;
+import com.thestarryguard.thestarryguard.Events.PlayerKillPlayerEvent;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.registry.Registries;
@@ -82,6 +83,26 @@ public class EventMgr {
             Action action = new Action(Action.KILL_ENTITY_ACTION_NAME, new Player(killer.getName().getString(), killer.getUuidAsString()),
                     entity_id, other.getBlockX(), other.getBlockY(), other.getBlockZ(), world_id, null);
             this.dataStorage.InsertAction(action);
+
+            return ActionResult.PASS;
+        }));
+    }
+
+    private void HookKillPlayerEvent()//注册玩家杀死玩家事件
+    {
+        PlayerKillPlayerEvent.EVENT.register(((world, killer, player) -> {
+
+            String world_id = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的id
+            String player_name = player.getName().getString(); //获取玩家的名字
+            String player_uuid = player.getUuidAsString();//
+            String mix_str = player_name + ":" + player_uuid;//混合型字符串,用于后面的解析
+
+            Action action = new Action(Action.KILL_PLAYER_ACTION_NAME,
+                    new Player(killer.getName().getString(), killer.getUuidAsString()),
+                    mix_str, player.getBlockX(), player.getBlockY(), player.getBlockZ(), world_id, null);
+
+            this.dataStorage.InsertAction(action);
+
             return ActionResult.PASS;
         }));
     }
@@ -102,9 +123,15 @@ public class EventMgr {
         {
             HookEntityAttackEvent();//如果启用则注册实体攻击事件
         }
+
         if (Boolean.parseBoolean(config.GetValue("hook_kill_entity_event")))//判断是否要注册击杀实体的事件
         {
             HookKillEntityEvent();//如果启用则注册击杀实体的事件
+        }
+
+        if(Boolean.parseBoolean(config.GetValue("hook_kill_player_event")))//判断是否要注册击杀玩家的事件
+        {
+            HookKillPlayerEvent();//如果启用则注册击杀玩家事件
         }
     }//注册配置文件中的事件
 
