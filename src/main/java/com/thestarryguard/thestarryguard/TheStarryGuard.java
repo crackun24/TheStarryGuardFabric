@@ -79,7 +79,7 @@ public class TheStarryGuard implements ModInitializer {
 
 
     private void RegCommand() {
-        this.commandMgr = new CommandMgr(this.dataQuery, this.lang);//初始化命令管理对象
+        this.commandMgr = new CommandMgr(this.dataQuery, this.lang,this.config);//初始化命令管理对象
         this.commandMgr.RegAllCommand();//注册所有的指令
     }
 

@@ -77,7 +77,7 @@ public class DataQuery extends Thread {//数据查询类
                 throw new IllegalStateException("Unexpected value: " + task.queryType);
         }
 
-        StringBuilder msg_to_send = new StringBuilder(String.format(this.mLang.PAGE_TITLE,
+        StringBuilder msg_to_send = new StringBuilder(String.format("§8---§4TheStarryGuard查询结果§8----§1共§3%s§1条记录§8----§1第 §3%s§8/§3%s §1页§8-----§f\n\n",
                 Integer.toString(total_entries), Integer.toString(total_entries == 0 ? 0 : task.pageId),
                 Integer.toString(total_page)));//发送给玩家的消息
 
@@ -86,11 +86,21 @@ public class DataQuery extends Thread {//数据查询类
         for (Action action : action_list)//遍历返回的结果集
         {
             long delta_time = time - action.time;//获取时间差
-            String entry = String.format(this.mLang.PAGE_ENTRY, action.player.name, action.actionType, action.targetName,
+            String target_name;
+           if(action.targetName.contains(":"))//判断是否含有分隔号:如 minecraft:stone
+           {
+               String item_detail[] = action.targetName.split(":");
+               target_name = item_detail[1];//获取名字
+           }else{
+               target_name = action.targetName;
+           }
+
+            String entry = String.format("%-16s%-20s%-20s%-10s\n"
+                    , action.player.name, action.actionType, target_name,
                     Tool.GetDateLengthDes(delta_time));
             msg_to_send.append(entry);
         }
-
+        msg_to_send.append("\n\n§8使用 §2/tg page 页数 §8即可翻页.");
         this.mPlayerLastTask.put(task.senderName, task);//放入玩家与上一个任务的映射中
 
         this.mMain.SendMsgToPlayer(task.senderName, Text.literal(msg_to_send.toString()));//默认发送第一页的内容

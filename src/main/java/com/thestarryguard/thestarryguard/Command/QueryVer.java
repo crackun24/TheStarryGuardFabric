@@ -8,10 +8,10 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public class QueryVer {//查询数据的指令
 
-    public void RegVerInfoCommand()//注册显示模组信息的命令
+    public void RegVerInfoCommand(int permission_level)//注册显示模组信息的命令
     {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) ->
-                        dispatcher.register(literal(CommandMgr.COMMAND_PREFIX)
+                        dispatcher.register(literal(CommandMgr.COMMAND_PREFIX).requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(permission_level))
                                 .executes(context -> {
                                         context.getSource().sendMessage(Text.literal(
                                                 String.format("TheStarryGuard v%s,by:%s.\nBuild date %s",

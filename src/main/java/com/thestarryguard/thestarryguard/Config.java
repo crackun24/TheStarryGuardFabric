@@ -10,18 +10,23 @@ import java.util.Properties;
 public class Config {//配置文件类
     static final String CONFIG_FILE_NAME = "TheStarryGuard/TheStarryGuard.properties";//配置文件的名称
     static final String DEFAULT_CONFIG_DATA = """
-            data_storage_type = sqlite
+                        data_storage_type = sqlite
 
-            mysql_host = host
-            mysql_name = the_starry_guard
-            mysql_user = user
-            mysql_pass = pass
-            mysql_port = port
+                        mysql_host = host
+                        mysql_name = the_starry_guard
+                        mysql_user = user
+                        mysql_pass = pass
+                        mysql_port = port
 
-            hook_block_break_event = true
-            hook_block_place_event = true
-            hook_attack_entity_event = true
-            """;//默认的配置文件信息
+                        hook_block_break_event = true
+                        hook_block_place_event = true
+                        hook_attack_entity_event = true
+                        hook_kill_entity_event = true
+                        hook_kill_player_event = true
+
+                        query_op_only = true
+                        rollback_op_only = true
+                        """;//默认的配置文件信息
     private Properties prop;//properties的配置文件读取对象
 
     private static void CreateDefaultConfigFile(final File file) throws IOException//创建默认的配置文件

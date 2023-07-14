@@ -15,9 +15,9 @@ public class QueryNear {//查询区域的命令
     private DataQuery mDataQuery;
     private Lang mLang;
 
-    public void RegQueryAreaCommand() {
+    public void RegQueryAreaCommand(int permission_level) {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal(CommandMgr.COMMAND_PREFIX)
+                literal(CommandMgr.COMMAND_PREFIX).requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(permission_level))
                         .then(literal("near")
                                 .executes(context -> {
                                     // 在这里执行您的操作

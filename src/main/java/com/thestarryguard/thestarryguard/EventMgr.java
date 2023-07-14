@@ -63,7 +63,7 @@ public class EventMgr {
     {
         BlockPlaceEvent.EVENT.register(((world, pos, state, placer, itemStack) -> {
             String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
-            String block_id = Registries.BLOCK.getId(state.getBlock()).toUnderscoreSeparatedString();//获取玩家使用的方块的ID
+            String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
 
             Action action = new Action(Action.BLOCK_PLACE, new Player(placer.getName().getString(),
                     placer.getUuidAsString()),

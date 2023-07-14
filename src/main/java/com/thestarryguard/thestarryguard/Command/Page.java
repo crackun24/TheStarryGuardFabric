@@ -17,9 +17,9 @@ public class Page {
     private DataQuery mDataQuery;
     private Lang mLang;
 
-    public void RegQueryPointCommand() {
+    public void RegQueryPointCommand(int permission_level) {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal(CommandMgr.COMMAND_PREFIX)
+                literal(CommandMgr.COMMAND_PREFIX).requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(permission_level))
                         .then(literal("page")
                                 .then(argument("page", IntegerArgumentType.integer())
                                         .executes(context -> {

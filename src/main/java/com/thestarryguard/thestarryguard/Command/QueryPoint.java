@@ -12,9 +12,9 @@ public class QueryPoint {//查询点的指令
     private DataQuery mDataQuery;
     private Lang mLang;//语言对象
 
-    public void RegQueryPointCommand() {
+    public void RegQueryPointCommand(int permission_level) {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal(CommandMgr.COMMAND_PREFIX)
+                literal(CommandMgr.COMMAND_PREFIX).requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(permission_level))
                         .then(literal("check")
                                 .executes(context -> {
                                     // 在这里执行您的操作
