@@ -3,7 +3,6 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
-import oshi.hardware.HardwareAbstractionLayer;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -33,9 +32,7 @@ public abstract class DataBase {//数据库的通用接口定义
     protected PreparedStatement query_area_action;//查询区域的行为
     protected PreparedStatement Query_area_action_count;//查询区域的行为的数量
 
-    public enum DataBaseStorageType {MYSQL, SQL_LITE}
-
-    ;//数据的储存使用的数据库类型
+    public enum DataBaseStorageType {MYSQL, SQL_LITE}//数据的储存使用的数据库类型
     protected HashMap<Player, Integer> playerIdMap = new HashMap<>();//玩家对象和ID的映射
     protected HashMap<String, Integer> actionIdMap = new HashMap<>();//玩家行为和ID的映射
     protected HashMap<String, Integer> entityIdMap = new HashMap<>();//实体的名字和ID的映射
@@ -142,7 +139,7 @@ public abstract class DataBase {//数据库的通用接口定义
 
     }
 
-    protected void FlushEntityMap() throws SQLException {
+    protected synchronized void FlushEntityMap() throws SQLException {
         String query_str = String.format("SELECT * FROM %s;", ENTITY_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -163,7 +160,7 @@ public abstract class DataBase {//数据库的通用接口定义
         this.entityIdMap = entity_id;
     }
 
-    protected int GetOrCreateActionMap(String action) throws SQLException {
+    protected synchronized int GetOrCreateActionMap(String action) throws SQLException {
         if (!this.actionIdMap.containsKey(action))//表中没有这个数据
         {
             int id = this.actionIdMap.size() + 1;//计算出新的对照的id
@@ -264,7 +261,7 @@ public abstract class DataBase {//数据库的通用接口定义
 
     protected abstract void CheckAndFixDataBaseStructure() throws Exception;//检查数据库的表的结构,如果表不符合要求,则修复表
 
-    protected String GetObjByActionAndId(String action, int obj_id) throws Exception {
+    protected synchronized String GetObjByActionAndId(String action, int obj_id) throws Exception {
         switch (action)//判断是哪一种类型
         {
             case BLOCK_PLACE, BLOCK_BREAK_ACTION_NAME:
@@ -320,7 +317,7 @@ public abstract class DataBase {//数据库的通用接口定义
         this.insert_action.execute();//执行插入数据
     }
 
-    public int GetPointActionCount(QueryTask query_task) throws SQLException {//获取点的玩家行为的数量
+    public synchronized int GetPointActionCount(QueryTask query_task) throws SQLException {//获取点的玩家行为的数量
         int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
         this.query_point_action_count.setInt(1, query_task.x);      // 替换为指定的x值
         this.query_point_action_count.setInt(2, query_task.y);      // 替换为指定的y值
@@ -334,7 +331,7 @@ public abstract class DataBase {//数据库的通用接口定义
         return 0;
     }
 
-    public ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception {//获取点玩家的行为
+    public synchronized ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception {//获取点玩家的行为
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
         int dimension_id = this.GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的名字
 
@@ -362,7 +359,7 @@ public abstract class DataBase {//数据库的通用接口定义
         return temp;//返回结果
     }
 
-    public int GetAreaActionCount(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
+    public synchronized int GetAreaActionCount(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
 
         this.Query_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.Query_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
@@ -382,7 +379,7 @@ public abstract class DataBase {//数据库的通用接口定义
         return 0;
     }
 
-    public ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
+    public synchronized ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
 
         this.query_area_action.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
