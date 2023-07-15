@@ -7,7 +7,9 @@
     "BlockMixin",
     "PlayerEntityMixin",
     "FlintMixin",
-    "TntBlockMixin"
+    "TntBlockMixin",
+    "BucketMixin",
+    "ChestMixin"
   ],
   "client": [
   ],

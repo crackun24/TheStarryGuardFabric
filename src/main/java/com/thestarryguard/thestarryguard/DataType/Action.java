@@ -8,6 +8,8 @@ public class Action {//玩家的行为类
     public static final String BLOCK_BREAK_ACTION = "block_break";
     public static final String KILL_ENTITY_ACTION = "kill_entity";
     public static final String KILL_PLAYER_ACTION = "kill_player";
+    public static final String BUKKIT_USE = "bukkit_use";//使用桶装物品
+    public static final String CHEST_USE = "chest_use";//从容器中取出物品
 
     public Player player;
     public int posX;

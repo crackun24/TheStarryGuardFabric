@@ -18,6 +18,19 @@ public class EventMgr {
     private DataStorage dataStorage;//数据存储对象
     private DataQuery dataQuery;//数据查询对象
 
+    private void HookChestUseEvent() {
+        UseChestEvent.EVENT.register((state, world, pos, player, hand, hit) -> {
+            String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
+            String block_id = Registries.BLOCK.getId(world.getBlockState(pos).getBlock()).toString();
+
+            Action action = new Action(Action.CHEST_USE, new Player(player.getName().getString(),
+                    player.getUuidAsString()),
+                    block_id, pos.getX(), pos.getY(), pos.getZ(), dimension_name, null);
+            this.dataStorage.InsertAction(action);
+            return ActionResult.PASS;
+        });
+    }
+
     private void HookBlockBreakEvent() {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             String player_name = player.getName().getString();
@@ -118,6 +131,22 @@ public class EventMgr {
         });
     }
 
+    private void HookUseBucketEvent() {//注册玩家使用桶类物品的事件
+        BucketUseEvent.EVENT.register((world, player, hand,item) -> {
+            BlockPos pos = player.getBlockPos();
+            String dimension_name = world.getRegistryKey().getValue().toUnderscoreSeparatedString();//获取世界的名字
+
+            String item_id = Registries.ITEM.getId(item).toString();
+
+            Action action = new Action(Action.BUKKIT_USE, new Player(player.getName().getString(),
+                    player.getUuidAsString()),
+                    item_id, pos.getX(), pos.getY(), pos.getZ(), dimension_name, null);
+
+            this.dataStorage.InsertAction(action);
+            return ActionResult.PASS;
+        });
+    }
+
     private void HookKillPlayerEvent()//注册玩家杀死玩家事件
     {
         PlayerKillPlayerEvent.EVENT.register((world, killer, player) -> {
@@ -170,6 +199,14 @@ public class EventMgr {
 
         if (Boolean.parseBoolean(config.GetValue("hook_player_lit_tnt_event"))) {
             HookPlayerUseTntEvent();
+        }
+
+        if (Boolean.parseBoolean(config.GetValue("hook_player_use_bucket_event"))) {
+            HookUseBucketEvent();
+        }
+
+        if (Boolean.parseBoolean(config.GetValue("hook_player_use_chest"))) {
+            HookChestUseEvent();
         }
     }//注册配置文件中的事件
 

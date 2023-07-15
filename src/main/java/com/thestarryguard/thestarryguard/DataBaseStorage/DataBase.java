@@ -264,7 +264,7 @@ public abstract class DataBase {//数据库的通用接口定义
     protected synchronized String GetObjByActionAndId(String action, int obj_id) throws Exception {
         switch (action)//判断是哪一种类型
         {
-            case BLOCK_PLACE, BLOCK_BREAK_ACTION,FIRE_BLOCK,TNT_USE:
+            case BLOCK_PLACE, BLOCK_BREAK_ACTION,FIRE_BLOCK,TNT_USE,BUKKIT_USE,CHEST_USE:
                 return GetItemById(obj_id);
             case ATTACK_ACTION, KILL_ENTITY_ACTION:
                 return GetEntityById(obj_id);
@@ -282,7 +282,7 @@ public abstract class DataBase {//数据库的通用接口定义
         int dimension_id = GetOrCreateDimensionMap(action.dimension);
 
         switch (action.actionType) {//判断玩家的行为的类型
-            case BLOCK_BREAK_ACTION, BLOCK_PLACE,FIRE_BLOCK,TNT_USE://方块破坏事件或者方块使用事件则直接获取方块的id
+            case BLOCK_BREAK_ACTION, BLOCK_PLACE,FIRE_BLOCK,TNT_USE,BUKKIT_USE,CHEST_USE://方块破坏事件或者方块使用事件则直接获取方块的id
                 target_id = GetOrCreateItemMap(action.targetName);//获取方块的id
                 break;
             //获取方块id
