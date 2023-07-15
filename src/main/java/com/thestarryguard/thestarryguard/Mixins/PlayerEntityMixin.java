@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
-    @Inject(at = @At(value = "RETURN"), method = "onKilledOther")
+    @Inject(at = @At(value = "HEAD"), method = "onKilledOther")
     private void onKill(ServerWorld world, LivingEntity other, CallbackInfoReturnable<Boolean> cir) {
         try {
             PlayerEntity killer = (PlayerEntity) (Object) this;

@@ -264,11 +264,11 @@ public abstract class DataBase {//数据库的通用接口定义
     protected synchronized String GetObjByActionAndId(String action, int obj_id) throws Exception {
         switch (action)//判断是哪一种类型
         {
-            case BLOCK_PLACE, BLOCK_BREAK_ACTION_NAME:
+            case BLOCK_PLACE, BLOCK_BREAK_ACTION,FIRE_BLOCK,TNT_USE:
                 return GetItemById(obj_id);
-            case ATTACK_ACTION_NAME, KILL_ENTITY_ACTION_NAME:
+            case ATTACK_ACTION, KILL_ENTITY_ACTION:
                 return GetEntityById(obj_id);
-            case KILL_PLAYER_ACTION_NAME://如果是玩家事件的话获取玩家的名字
+            case KILL_PLAYER_ACTION://如果是玩家事件的话获取玩家的名字
                 return GetPlayerById(obj_id).name;
             default:
                 throw new RuntimeException("Could not find the action.");
@@ -282,14 +282,14 @@ public abstract class DataBase {//数据库的通用接口定义
         int dimension_id = GetOrCreateDimensionMap(action.dimension);
 
         switch (action.actionType) {//判断玩家的行为的类型
-            case Action.BLOCK_BREAK_ACTION_NAME, BLOCK_PLACE://方块破坏事件或者方块使用事件则直接获取方块的id
+            case BLOCK_BREAK_ACTION, BLOCK_PLACE,FIRE_BLOCK,TNT_USE://方块破坏事件或者方块使用事件则直接获取方块的id
                 target_id = GetOrCreateItemMap(action.targetName);//获取方块的id
                 break;
             //获取方块id
-            case Action.ATTACK_ACTION_NAME ,KILL_ENTITY_ACTION_NAME://实体攻击事件
+            case ATTACK_ACTION ,KILL_ENTITY_ACTION://实体攻击事件
                     target_id = GetOrCreateEntityMap(action.targetName);//获取实体ID
                 break;
-            case KILL_PLAYER_ACTION_NAME:
+            case KILL_PLAYER_ACTION:
                 String[] split_data = action.targetName.split(":");//分割字符串
                 String player_name = split_data[0];//玩家的名字放在第一部分
                 String player_uuid = split_data[1];//玩家的uuid放在第一部分
