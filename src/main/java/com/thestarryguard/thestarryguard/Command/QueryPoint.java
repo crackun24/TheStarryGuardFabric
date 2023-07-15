@@ -1,7 +1,7 @@
 package com.thestarryguard.thestarryguard.Command;
 
 import com.thestarryguard.thestarryguard.CommandMgr;
-import com.thestarryguard.thestarryguard.DataQuery;
+import com.thestarryguard.thestarryguard.Operation.DataQuery;
 import com.thestarryguard.thestarryguard.Lang;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.network.ServerPlayerEntity;

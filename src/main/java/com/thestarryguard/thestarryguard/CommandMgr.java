@@ -4,6 +4,7 @@ import com.thestarryguard.thestarryguard.Command.Page;
 import com.thestarryguard.thestarryguard.Command.QueryNear;
 import com.thestarryguard.thestarryguard.Command.QueryPoint;
 import com.thestarryguard.thestarryguard.Command.QueryVer;
+import com.thestarryguard.thestarryguard.Operation.DataQuery;
 
 public class CommandMgr {//命令管理类
     public static final String COMMAND_PREFIX = "tg";//命令的前缀

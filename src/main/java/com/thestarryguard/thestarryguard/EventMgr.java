@@ -6,6 +6,8 @@ import com.thestarryguard.thestarryguard.DataType.QueryTask;
 import com.thestarryguard.thestarryguard.Events.BlockPlaceEvent;
 import com.thestarryguard.thestarryguard.Events.PlayerKillEntityEvent;
 import com.thestarryguard.thestarryguard.Events.PlayerKillPlayerEvent;
+import com.thestarryguard.thestarryguard.Operation.DataQuery;
+import com.thestarryguard.thestarryguard.Operation.DataStorage;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.registry.Registries;

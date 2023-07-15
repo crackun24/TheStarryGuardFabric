@@ -1,7 +1,6 @@
-package com.thestarryguard.thestarryguard;
+package com.thestarryguard.thestarryguard.Operation;
 
 import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
-import com.thestarryguard.thestarryguard.DataBaseStorage.Mysql;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

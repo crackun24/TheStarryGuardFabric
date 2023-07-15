@@ -1,8 +1,11 @@
-package com.thestarryguard.thestarryguard;
+package com.thestarryguard.thestarryguard.Operation;
 
 import com.thestarryguard.thestarryguard.DataBaseStorage.DataBase;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
+import com.thestarryguard.thestarryguard.Lang;
+import com.thestarryguard.thestarryguard.TheStarryGuard;
+import com.thestarryguard.thestarryguard.Tool;
 import net.minecraft.text.Text;
 
 import java.util.*;
@@ -83,20 +86,37 @@ public class DataQuery extends Thread {//数据查询类
 
         long time = System.currentTimeMillis() / 1000;
 
+        int max_player_name_length = 0, max_target_name_length = 0, max_action_type_name_lenth = 0;
+        for (Action action : action_list)//遍历取出最大的字符串数量
+        {
+            if (action.targetName.length() > max_target_name_length) {
+                max_target_name_length = action.targetName.length();
+            }
+            if (action.player.name.length() > max_player_name_length) {
+                max_player_name_length = action.player.name.length();
+            }
+            if (action.actionType.length() > max_action_type_name_lenth) {
+                max_action_type_name_lenth = action.actionType.length();
+            }
+        }
+        max_action_type_name_lenth += 5;
+        max_player_name_length += 5;
+        max_target_name_length += 5;
+
         for (Action action : action_list)//遍历返回的结果集
         {
             long delta_time = time - action.time;//获取时间差
             String target_name;
-           if(action.targetName.contains(":"))//判断是否含有分隔号:如 minecraft:stone
-           {
-               String item_detail[] = action.targetName.split(":");
-               target_name = item_detail[1];//获取名字
-           }else{
-               target_name = action.targetName;
-           }
+            if (action.targetName.contains(":"))//判断是否含有分隔号:如 minecraft:stone
+            {
+                String item_detail[] = action.targetName.split(":");
+                target_name = item_detail[1];//获取名字
+            } else {
+                target_name = action.targetName;
+            }
 
-            String entry = String.format("%-16s%-20s%-20s%-10s\n"
-                    , action.player.name, action.actionType, target_name,
+            String entry = String.format("%-" + max_player_name_length +"s%-" + max_action_type_name_lenth + "s%-"
+                            + max_target_name_length + "s%-6.10s\n", action.player.name, action.actionType, target_name,
                     Tool.GetDateLengthDes(delta_time));
             msg_to_send.append(entry);
         }
@@ -126,7 +146,7 @@ public class DataQuery extends Thread {//数据查询类
         try {
             DoTask();//完成最后的任务
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
