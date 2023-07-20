@@ -16,6 +16,7 @@ repositories {
 
 
 dependencies {
+    implementation (include('com.zaxxer:HikariCP:4.0.3'))
     implementation (include('mysql:mysql-connector-java:8.0.28'))
     implementation (include('org.xerial:sqlite-jdbc:3.34.0'))
     // To change the versions see the gradle.properties file

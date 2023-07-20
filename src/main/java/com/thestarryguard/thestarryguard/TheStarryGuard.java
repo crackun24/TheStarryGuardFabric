@@ -57,13 +57,7 @@ public class TheStarryGuard implements ModInitializer {
         switch (this.config.GetValue("data_storage_type"))//确认数据存储的类型
         {
             case "mysql" -> {
-                String db_name = this.config.GetValue("mysql_name");
-                String db_host = this.config.GetValue("mysql_host");
-                String db_port = this.config.GetValue("mysql_port");
-                String db_user = this.config.GetValue("mysql_user");
-                String db_pass = this.config.GetValue("mysql_pass");
-                String url = String.format("jdbc:mysql://%s:%s/%s?autoReconnect=true&serverTimezone=UTC&useSSL=false&user=%s&password=%s", db_host, db_port, db_name, db_user, db_pass);
-                data_base = Mysql.GetMysql(url);//构建一个mysql数据库连接对象
+                data_base = Mysql.GetMysql(this.config);//构建一个mysql数据库连接对象
             }
             case "sqlite" -> {
                 File config_dir = FabricLoader.getInstance().getConfigDir().toFile();//获取配置文件存放的根目录

@@ -1,13 +1,17 @@
 package com.thestarryguard.thestarryguard.DataBaseStorage;
 
+import com.thestarryguard.thestarryguard.Config;
 import com.thestarryguard.thestarryguard.DataType.Tables;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.sql.*;
 
 public class Mysql extends DataBase {
 
-    private String mURL;//mysql连接的地址
+    private static HikariDataSource dataSource;
+    private Config config;
     private final Logger LOGGER;//日志记录器对象
 
     //构造函数
@@ -15,16 +19,12 @@ public class Mysql extends DataBase {
         LOGGER = LogManager.getLogger();//获取日志记录器
     }
 
-    static public Mysql GetMysql(String url)//mysql的工厂方法
+    static public Mysql GetMysql(Config config)//mysql的工厂方法
     {
         Mysql mysql = new Mysql();
-        mysql.mURL = url;
+        mysql.config = config;
         return mysql;
     }
-
-
-
-
 
     @Override
     public void CheckAndFixDataBaseStructure() throws Exception {//检查数据库的表的结构是否符合要求,如果不符合要求则进行数据库的表的修复
@@ -41,9 +41,21 @@ public class Mysql extends DataBase {
     @Override
     public void ConnectToDataBase() throws Exception {//连接到数据库
         LOGGER.info("Connecting to mysql.");
-        Class.forName("com.mysql.cj.jdbc.Driver");//加载mysql数据库的驱动
-        this.mConn = DriverManager.getConnection(this.mURL);//连接到数据库
-        this.mConn.setAutoCommit(true);//设置为自动提交
+
+        HikariConfig config = new HikariConfig();
+
+        String url = String.format("jdbc:mysql://%s:%s/%s",
+                this.config.GetValue("mysql_host"),this.config.GetValue("mysql_port"),this.config.GetValue("mysql_name"));
+        config.setJdbcUrl(url);
+        config.setUsername(this.config.GetValue("mysql_user"));
+        config.setPassword(this.config.GetValue("mysql_pass"));
+        config.setAutoCommit(true);
+        config.setConnectionTestQuery("SELECT 1"); // 设置连接测试查询
+
+        dataSource = new HikariDataSource(config);
+        this.mConn = dataSource.getConnection();
+
+
         CheckAndFixDataBaseStructure();//检查数据库的表的结构
 
         if (!this.mConn.isValid(5)) {//判断连接是否有效
