@@ -3,6 +3,7 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 import com.thestarryguard.thestarryguard.DataType.Action;
 import com.thestarryguard.thestarryguard.DataType.Player;
 import com.thestarryguard.thestarryguard.DataType.QueryTask;
+import com.thestarryguard.thestarryguard.DataType.Tables;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -164,6 +165,7 @@ public abstract class DataBase {//数据库的通用接口定义
         if (!this.actionIdMap.containsKey(action))//表中没有这个数据
         {
             int id = this.actionIdMap.size() + 1;//计算出新的对照的id
+            this.insert_action_map =this.mConn.prepareStatement(Tables.INSERT_ACTION_MAP_STR);
             this.insert_action_map.setString(1, action);  // 设置 action 参数值
             this.insert_action_map.setInt(2, id);             // 设置 id 参数值
             this.insert_action_map.execute();//执行更新
@@ -180,6 +182,7 @@ public abstract class DataBase {//数据库的通用接口定义
         if (!this.dimensionIdMap.containsKey(dimension))//表中没有这个数据
         {
             int id = this.dimensionIdMap.size() + 1;//计算出新的对照的id
+            this.insert_dimension_map = this.mConn.prepareStatement(Tables.INSERT_DIMENSION_MAP_STR);
             this.insert_dimension_map.setString(1, dimension);  // 设置 action 参数值
             this.insert_dimension_map.setInt(2, id);             // 设置 id 参数值
             this.insert_dimension_map.execute();//执行更新
@@ -197,6 +200,7 @@ public abstract class DataBase {//数据库的通用接口定义
         {
             int id = this.playerIdMap.size() + 1;//计算出新的对照的id
 
+            this.insert_player_map = this.mConn.prepareStatement(Tables.INSERT_PLAYER_MAP_STR);
             this.insert_player_map.setString(1, player.UUID);  // 设置 uuid 参数值
             this.insert_player_map.setString(2, player.name);  // 设置 name 参数值
             this.insert_player_map.setInt(3, id);
@@ -213,6 +217,7 @@ public abstract class DataBase {//数据库的通用接口定义
         if (!this.itemIdMap.containsKey(item))//表中没有这个数据
         {
             int id = this.itemIdMap.size() + 1;//计算出新的对照的id
+            this.insert_item_map = this.mConn.prepareStatement(Tables.INSERT_ITEM_MAP_STR);
             this.insert_item_map.setString(1, item);  // 设置 action 参数值
             this.insert_item_map.setInt(2, id);             // 设置 id 参数值
             this.insert_item_map.execute();//执行更新
@@ -228,6 +233,8 @@ public abstract class DataBase {//数据库的通用接口定义
         if (!this.entityIdMap.containsKey(entity))//表中没有这个数据
         {
             int id = this.entityIdMap.size() + 1;//计算出新的对照的id
+
+            this.insert_entity_map = this.mConn.prepareStatement(Tables.INSERT_ENTITY_MAP_STR);
             this.insert_entity_map.setString(1, entity);  // 设置 action 参数值
             this.insert_entity_map.setInt(2, id);             // 设置 id 参数值
             this.insert_entity_map.execute();//执行更新
@@ -299,6 +306,7 @@ public abstract class DataBase {//数据库的通用接口定义
                     throw new Exception("Could not get the map of the type of the action.");
         }
 
+        this.insert_action = this.mConn.prepareStatement(Tables.INSERT_ACTION_STR);
         this.insert_action.setInt(1, player_id);          // 设置 player 参数值
         this.insert_action.setInt(2, action_id);          // 设置 action 参数值
         this.insert_action.setInt(3, target_id);          // 设置 target 参数值
@@ -319,6 +327,8 @@ public abstract class DataBase {//数据库的通用接口定义
 
     public synchronized int GetPointActionCount(QueryTask query_task) throws SQLException {//获取点的玩家行为的数量
         int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+
+        this.query_point_action_count = this.mConn.prepareStatement(Tables.QUERY_POINT_ACTION_COUNT);
         this.query_point_action_count.setInt(1, query_task.x);      // 替换为指定的x值
         this.query_point_action_count.setInt(2, query_task.y);      // 替换为指定的y值
         this.query_point_action_count.setInt(3, query_task.z);      // 替换为指定的z值
@@ -335,6 +345,7 @@ public abstract class DataBase {//数据库的通用接口定义
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
         int dimension_id = this.GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的名字
 
+        this.query_point_action = this.mConn.prepareStatement(Tables.QUERY_POINT_ACTION);
         this.query_point_action.setInt(1, query_task.x);      // 替换为指定的x值
         this.query_point_action.setInt(2, query_task.y);      // 替换为指定的y值
         this.query_point_action.setInt(3, query_task.z);      // 替换为指定的z值
@@ -361,6 +372,7 @@ public abstract class DataBase {//数据库的通用接口定义
 
     public synchronized int GetAreaActionCount(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
 
+        this.Query_area_action_count = this.mConn.prepareStatement(Tables.QUERY_AREA_ACTION_COUNT);
         this.Query_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.Query_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.Query_area_action_count.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
@@ -382,6 +394,7 @@ public abstract class DataBase {//数据库的通用接口定义
     public synchronized ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
 
+        this.query_area_action = this.mConn.prepareStatement(Tables.QUERY_AREA_ACTION);
         this.query_area_action.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.query_area_action.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.query_area_action.setInt(3, query_task.y - query_task.MAX_AREA_QUERY_AREA_RADIUS);
