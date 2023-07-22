@@ -6,12 +6,13 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 
 public class Mysql extends DataBase {
-
+    Config config;
     private static HikariDataSource dataSource;
-    private Config config;
+    private HikariConfig data_config;
     private final Logger LOGGER;//日志记录器对象
 
     //构造函数
@@ -37,24 +38,32 @@ public class Mysql extends DataBase {
         stmt.execute(Tables.Mysql.CREATE_TG_PLAYER_MAP);
     }
 
+    @Override
+    protected void VerifyConnection() throws Exception {
+        if (!this.mConn.isValid(3)) {
+            dataSource = new HikariDataSource(data_config);
+            this.mConn = dataSource.getConnection();
+        }
+    }
+
 
     @Override
     public void ConnectToDataBase() throws Exception {//连接到数据库
         LOGGER.info("Connecting to mysql.");
 
-        HikariConfig config = new HikariConfig();
+        data_config = new HikariConfig();
 
         String url = String.format("jdbc:mysql://%s:%s/%s",
-                this.config.GetValue("mysql_host"),this.config.GetValue("mysql_port"),this.config.GetValue("mysql_name"));
-        config.setJdbcUrl(url);
-        config.setUsername(this.config.GetValue("mysql_user"));
-        config.setPassword(this.config.GetValue("mysql_pass"));
-        config.setAutoCommit(true);
-        config.setConnectionTestQuery("SELECT 1"); // 设置连接测试查询
+                this.config.GetValue("mysql_host"), this.config.GetValue("mysql_port"), this.config.GetValue("mysql_name"));
+        data_config.setJdbcUrl(url);
+        data_config.setUsername(this.config.GetValue("mysql_user"));
+        data_config.setPassword(this.config.GetValue("mysql_pass"));
+        data_config.setAutoCommit(true);
+        data_config.setConnectionTestQuery("SELECT 1"); // 设置连接测试查询
+        data_config.setMaxLifetime(10);
 
-        dataSource = new HikariDataSource(config);
+        dataSource = new HikariDataSource(data_config);
         this.mConn = dataSource.getConnection();
-
 
         CheckAndFixDataBaseStructure();//检查数据库的表的结构
 

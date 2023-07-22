@@ -47,9 +47,8 @@ public abstract class DataBase {//数据库的通用接口定义
     protected HashMap<Integer, String> idDimensionMap = new HashMap<>();//维度ID和维度的映射
     protected HashMap<Integer, String> idItemMap = new HashMap<>();//物品id和物品名称的映射
 
-
-    protected synchronized void FlushPlayerMap() throws SQLException {
-
+    protected synchronized void FlushPlayerMap() throws Exception {
+        VerifyConnection();
         String query_str = String.format("SELECT * FROM %s;", PLAYER_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -71,8 +70,9 @@ public abstract class DataBase {//数据库的通用接口定义
 
     }
 
-    protected synchronized void FlushActionMap() throws SQLException {
+    protected synchronized void FlushActionMap() throws Exception {
 
+        VerifyConnection();
         String query_str = String.format("SELECT * FROM %s;", ACTION_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -94,8 +94,9 @@ public abstract class DataBase {//数据库的通用接口定义
 
     }
 
-    protected synchronized void FlushItemMap() throws SQLException {
+    protected synchronized void FlushItemMap() throws Exception {
 
+        VerifyConnection();
         String query_str = String.format("SELECT * FROM %s;", ITEM_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -117,8 +118,9 @@ public abstract class DataBase {//数据库的通用接口定义
 
     }
 
-    protected synchronized void FlushDimensionMap() throws SQLException {
+    protected synchronized void FlushDimensionMap() throws Exception {
 
+        VerifyConnection();
         String query_str = String.format("SELECT * FROM %s;", DIMENSION_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -140,7 +142,9 @@ public abstract class DataBase {//数据库的通用接口定义
 
     }
 
-    protected synchronized void FlushEntityMap() throws SQLException {
+    protected synchronized void FlushEntityMap() throws Exception {
+
+        VerifyConnection();
         String query_str = String.format("SELECT * FROM %s;", ENTITY_MAP_TABLE_NAME);//构建查询语句
         Statement stmt = this.mConn.createStatement();//创建查询
         ResultSet res = stmt.executeQuery(query_str);//执行查询
@@ -161,7 +165,8 @@ public abstract class DataBase {//数据库的通用接口定义
         this.entityIdMap = entity_id;
     }
 
-    protected synchronized int GetOrCreateActionMap(String action) throws SQLException {
+    protected synchronized int GetOrCreateActionMap(String action) throws Exception {
+
         if (!this.actionIdMap.containsKey(action))//表中没有这个数据
         {
             int id = this.actionIdMap.size() + 1;//计算出新的对照的id
@@ -178,7 +183,7 @@ public abstract class DataBase {//数据库的通用接口定义
     }
 
 
-    protected synchronized int GetOrCreateDimensionMap(String dimension) throws SQLException {
+    protected synchronized int GetOrCreateDimensionMap(String dimension) throws Exception {
         if (!this.dimensionIdMap.containsKey(dimension))//表中没有这个数据
         {
             int id = this.dimensionIdMap.size() + 1;//计算出新的对照的id
@@ -194,7 +199,7 @@ public abstract class DataBase {//数据库的通用接口定义
         }
     }
 
-    protected synchronized int GetOrCreatePlayerMap(Player player) throws SQLException {
+    protected synchronized int GetOrCreatePlayerMap(Player player) throws Exception {
 
         if (!this.playerIdMap.containsKey(player))//表中没有这个数据
         {
@@ -213,7 +218,7 @@ public abstract class DataBase {//数据库的通用接口定义
         }
     }
 
-    protected synchronized int GetOrCreateItemMap(String item) throws SQLException {
+    protected synchronized int GetOrCreateItemMap(String item) throws Exception {
         if (!this.itemIdMap.containsKey(item))//表中没有这个数据
         {
             int id = this.itemIdMap.size() + 1;//计算出新的对照的id
@@ -229,7 +234,7 @@ public abstract class DataBase {//数据库的通用接口定义
         }
     }
 
-    protected int GetOrCreateEntityMap(String entity) throws SQLException {
+    protected int GetOrCreateEntityMap(String entity) throws Exception {
         if (!this.entityIdMap.containsKey(entity))//表中没有这个数据
         {
             int id = this.entityIdMap.size() + 1;//计算出新的对照的id
@@ -283,6 +288,8 @@ public abstract class DataBase {//数据库的通用接口定义
     }
 
     public synchronized void WriteActionToDb(Action action) throws Exception {//将玩家的行为写入数据库
+
+        VerifyConnection();
         int action_id = GetOrCreateActionMap(action.actionType);//获取玩家的行为的ID
         int target_id;//目标的id(玩家放置的方块ID,玩家攻击的实体id等)
         int player_id = GetOrCreatePlayerMap(action.player);//
@@ -325,9 +332,10 @@ public abstract class DataBase {//数据库的通用接口定义
         this.insert_action.execute();//执行插入数据
     }
 
-    public synchronized int GetPointActionCount(QueryTask query_task) throws SQLException {//获取点的玩家行为的数量
-        int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+    public synchronized int GetPointActionCount(QueryTask query_task) throws Exception {//获取点的玩家行为的数量
 
+        int dimension_id = GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的映射id
+        VerifyConnection();
         this.query_point_action_count = this.mConn.prepareStatement(Tables.QUERY_POINT_ACTION_COUNT);
         this.query_point_action_count.setInt(1, query_task.x);      // 替换为指定的x值
         this.query_point_action_count.setInt(2, query_task.y);      // 替换为指定的y值
@@ -344,7 +352,7 @@ public abstract class DataBase {//数据库的通用接口定义
     public synchronized ArrayList<Action> GetPointAction(QueryTask query_task) throws Exception {//获取点玩家的行为
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
         int dimension_id = this.GetOrCreateDimensionMap(query_task.dimensionName);//获取维度的名字
-
+        VerifyConnection();
         this.query_point_action = this.mConn.prepareStatement(Tables.QUERY_POINT_ACTION);
         this.query_point_action.setInt(1, query_task.x);      // 替换为指定的x值
         this.query_point_action.setInt(2, query_task.y);      // 替换为指定的y值
@@ -372,6 +380,7 @@ public abstract class DataBase {//数据库的通用接口定义
 
     public synchronized int GetAreaActionCount(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
 
+        VerifyConnection();
         this.Query_area_action_count = this.mConn.prepareStatement(Tables.QUERY_AREA_ACTION_COUNT);
         this.Query_area_action_count.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.Query_area_action_count.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
@@ -394,6 +403,7 @@ public abstract class DataBase {//数据库的通用接口定义
     public synchronized ArrayList<Action> GetAreaAction(QueryTask query_task) throws Exception {//获取区域内所有行为的数量
         int start_pos = query_task.Max_PAGE_AMOUNT * (query_task.pageId - 1);
 
+        VerifyConnection();
         this.query_area_action = this.mConn.prepareStatement(Tables.QUERY_AREA_ACTION);
         this.query_area_action.setInt(1, query_task.x - query_task.MAX_AREA_QUERY_AREA_RADIUS);
         this.query_area_action.setInt(2, query_task.x + query_task.MAX_AREA_QUERY_AREA_RADIUS);
@@ -424,6 +434,7 @@ public abstract class DataBase {//数据库的通用接口定义
         }
         return temp;//返回结果
     }
-
+    protected abstract void VerifyConnection() throws Exception;//校验数据库的连接
     public abstract void ConnectToDataBase() throws Exception;//连接到数据库
+
 }

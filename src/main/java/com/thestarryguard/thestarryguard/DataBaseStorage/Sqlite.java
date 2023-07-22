@@ -29,6 +29,11 @@ public class Sqlite extends DataBase {
     }
 
     @Override
+    protected void VerifyConnection() throws Exception {
+
+    }
+
+    @Override
     public void ConnectToDataBase() throws Exception {
         LOGGER.info("Connecting to sqlite.");
         if(!this.mPath.exists())//判断文件是否存在
