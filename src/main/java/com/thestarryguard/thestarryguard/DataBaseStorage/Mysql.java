@@ -2,8 +2,6 @@ package com.thestarryguard.thestarryguard.DataBaseStorage;
 
 import com.thestarryguard.thestarryguard.Config;
 import com.thestarryguard.thestarryguard.DataType.Tables;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,13 +9,26 @@ import java.sql.*;
 
 public class Mysql extends DataBase {
     Config config;
-    private static HikariDataSource dataSource;
-    private HikariConfig data_config;
     private final Logger LOGGER;//日志记录器对象
 
+    private void ConnectToDb() throws SQLException//连接到数据库
+    {
+        String url = String.format("jdbc:mysql://%s:%s/%s",
+                this.config.GetValue("mysql_host"), this.config.GetValue("mysql_port"),
+                this.config.GetValue("mysql_name"));
+
+        this.mConn = DriverManager.getConnection(url,
+                this.config.GetValue("mysql_user"),this.config.GetValue("mysql_pass"));//创建一个新的连接
+    }
     //构造函数
     private Mysql() {
         LOGGER = LogManager.getLogger();//获取日志记录器
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");//加载数据库的驱动
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("Could not load database driver.");
+        }
     }
 
     static public Mysql GetMysql(Config config)//mysql的工厂方法
@@ -41,8 +52,8 @@ public class Mysql extends DataBase {
     @Override
     protected void VerifyConnection() throws Exception {
         if (!this.mConn.isValid(3)) {
-            dataSource = new HikariDataSource(data_config);
-            this.mConn = dataSource.getConnection();
+            this.mConn.close();
+            ConnectToDb();//重新连接到数据库
         }
     }
 
@@ -51,20 +62,7 @@ public class Mysql extends DataBase {
     public void ConnectToDataBase() throws Exception {//连接到数据库
         LOGGER.info("Connecting to mysql.");
 
-        data_config = new HikariConfig();
-
-        String url = String.format("jdbc:mysql://%s:%s/%s",
-                this.config.GetValue("mysql_host"), this.config.GetValue("mysql_port"), this.config.GetValue("mysql_name"));
-        data_config.setJdbcUrl(url);
-        data_config.setUsername(this.config.GetValue("mysql_user"));
-        data_config.setPassword(this.config.GetValue("mysql_pass"));
-        data_config.setAutoCommit(true);
-        data_config.setConnectionTestQuery("SELECT 1"); // 设置连接测试查询
-        data_config.setMaxLifetime(10);
-
-        dataSource = new HikariDataSource(data_config);
-        this.mConn = dataSource.getConnection();
-
+        ConnectToDb();//连接到数据库
         CheckAndFixDataBaseStructure();//检查数据库的表的结构
 
         if (!this.mConn.isValid(5)) {//判断连接是否有效
