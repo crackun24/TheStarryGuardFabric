@@ -19,6 +19,7 @@ public class Mysql extends DataBase {
 
         this.mConn = DriverManager.getConnection(url,
                 this.config.GetValue("mysql_user"),this.config.GetValue("mysql_pass"));//创建一个新的连接
+        this.mConn.setAutoCommit(true);//设置为自动提交
     }
     //构造函数
     private Mysql() {
